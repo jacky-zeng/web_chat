@@ -159,7 +159,8 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-
+        /*swoole扩展*/
+        SwooleTW\Http\LaravelServiceProvider::class,
     ],
 
     /*
