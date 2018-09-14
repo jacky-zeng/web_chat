@@ -14,3 +14,11 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::group([
+    'middleware' => [],
+    'prefix'     => '',
+    'namespace'  => 'Web',
+], function () {
+    Route::get('index', 'ChatController@index')->name('web_chat_index');
+});
