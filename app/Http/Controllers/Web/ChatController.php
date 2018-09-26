@@ -16,4 +16,10 @@ class ChatController extends Controller
             'params' => json_encode($params),
         ]);
     }
+
+    //聊天面板首页(完善版)
+    public function chat()
+    {
+        return view('web.chat.chat');
+    }
 }

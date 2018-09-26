@@ -1,0 +1,378 @@
+/* 聊天css */
+.hide {
+    display: none;
+}
+
+/*收缩后的小面板*/
+.chat-min {
+    border: 1px solid #cfcfcf;
+    position: absolute;
+    right: 0px;
+    width: 20px;
+    height: 100px;
+    margin-top: -50px;
+    top: 50%;
+}
+
+.chat-min .min-content {
+    cursor: pointer;
+    width: 20px;
+    height: 100px
+}
+
+.chat-min .min-content .arrow {
+    position: relative;
+    top: 50%;
+    margin-top: -8px;
+    margin-left: 5px;
+}
+
+/*聊天主面板*/
+.chat-box {
+    position: fixed;
+    bottom: 5px;
+    right: 5px;
+    width: 260px;
+    height: 520px;
+    background-color: #ffffff;
+    border: 1px solid #cfcfcf;
+}
+
+.chat-box .main-box {
+    position: fixed;
+    width: 260px;
+    height: 520px;
+}
+
+/*顶部*/
+.chat-box .main-box .box-head {
+    cursor: move;
+    height: 70px;
+    line-height: 70px;
+    background-color: #f6f6f6;
+}
+
+.chat-box .main-box .box-head .user-image {
+    cursor: pointer;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-left: 10px;
+    margin-top: 6px;
+}
+
+.chat-box .main-box .box-head .close {
+    cursor: pointer;
+    float: right;
+    font-size: 20px;
+    padding: 5px;
+    margin-top: -25px;
+    margin-right: 5px;
+}
+
+/*tab切换*/
+.chat-box .main-box .box-tab {
+    background-color: #f6f6f6;
+}
+
+.chat-box .main-box .box-tab .tab {
+    cursor: pointer;
+    margin-top: 20px;
+    display: inline-block;
+    width: 78px;
+    text-align: center;
+    height: 32px;
+}
+
+.chat-box .main-box .box-tab .active {
+    border-bottom: 3px solid #63da54;
+}
+
+.chat-box .main-box .box-tab .tab i {
+    font-size: 20px;
+}
+
+/*好友*/
+.chat-box .main-box .box-content {
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.chat-box .main-box .box-content ul {
+    list-style: none;
+    display: inline;
+}
+
+.chat-box .main-box .box-content li {
+    position: relative;
+    cursor: pointer;
+    height: 42px;
+    padding: 5px 15px 5px 60px;
+}
+
+.chat-box .main-box .box-content li span {
+    font-size: 12px;
+    max-width: 160px;
+}
+
+.chat-box .main-box .box-content li:hover {
+    background-color: #f6f6f6;
+}
+
+.chat-box .main-box .box-content .member-image {
+    position: absolute;
+    left: 15px;
+    top: 8px;
+    width: 36px;
+    height: 36px;
+    border-radius: 100%;
+}
+
+/*底部*/
+.chat-box .main-box .box-footer {
+    bottom: 0px;
+    background-color: #f6f6f6;
+    position: absolute;
+    height: 35px;
+    width: 100%;
+}
+
+.chat-box .main-box .box-footer .icon {
+    cursor: pointer;
+    line-height: 35px;
+    font-size: 20px;
+    margin-left: 15px;
+}
+
+/*聊天对话框整体*/
+.chat-dialog {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+}
+
+.chat-dialog .main-dialog {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    background-color: #ffffff;
+    border: 1px solid #cfcfcf;
+    width: 620px;
+    height: 520px;
+    margin-left: -310px;
+    margin-top: -260px;
+}
+
+/*顶部*/
+.chat-dialog .main-dialog .dialog-head {
+    cursor: move;
+    height: 70px;
+    line-height: 70px;
+    background-color: #f6f6f6;
+}
+
+.chat-dialog .main-dialog .dialog-head .member-image {
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-left: 10px;
+    margin-top: 6px;
+}
+
+.chat-dialog .main-dialog .dialog-head .member-name {
+    position: absolute;
+    font-size: 15px;
+    margin-left: 12px;
+    margin-top: -15px;
+}
+
+.chat-dialog .main-dialog .dialog-head .close {
+    cursor: pointer;
+    float: right;
+    font-size: 20px;
+    padding: 5px;
+    margin-top: -25px;
+    margin-right: 3px;
+}
+
+/*聊天内容*/
+.chat-dialog .main-dialog .dialog-content {
+    position: relative;
+    height: 305px;
+    overflow-y: auto;
+}
+
+.chat-dialog .main-dialog .dialog-content ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.chat-dialog .main-dialog .dialog-content ul li {
+    position: relative;
+    font-size: 12px;
+    padding-left: 60px;
+    padding-bottom: 15px;
+}
+
+.dialog-chat-user {
+    position: relative;
+    left: -40px;
+}
+
+.dialog-chat-user img {
+    width: 40px;
+    height: 40px;
+    border-radius: 100%;
+}
+
+.dialog-chat-user cite {
+    position: relative;
+    left: 10px;
+    top: -24px;
+    width: 500px;
+    line-height: 24px;
+    font-size: 12px;
+    white-space: nowrap;
+    color: #999;
+    text-align: left;
+    font-style: normal;
+}
+
+.dialog-chat-user cite i {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.dialog-chat-text {
+    position: relative;
+    display: inline-block;
+    line-height: 22px;
+    margin-top: -20px;
+    margin-left: 15px;
+    padding: 5px 10px;
+    background-color: #e2e2e2;
+    border-radius: 3px;
+    color: #333;
+    word-break: break-all;
+    max-width: 450px;
+}
+
+.dialog-chat-text .dialog-chat-message {
+    display: inline;
+}
+
+.dialog-chat-triangle {
+    position: relative;
+    display: inline-block;
+    margin-bottom: -5px;
+    margin-left: -20px;
+    width: 0;
+    height: 0;
+    border-width: 10px;
+    border-style: solid;
+    border-color: #e2e2e2 transparent transparent transparent;
+}
+
+.dialog-chat-mine {
+    text-align: right;
+    padding-left: 0;
+    padding-right: 75px;
+}
+
+.dialog-chat-mine .dialog-chat-user cite {
+    left: auto;
+    /*right: 60px;*/
+    text-align: right;
+}
+
+.dialog-chat-mine .dialog-chat-user {
+    position: relative;
+    left: 50px;
+}
+
+.dialog-chat-mine .dialog-chat-triangle {
+    position: absolute;
+    right: -8px;
+    border-color: #5FB878 transparent transparent transparent;
+}
+
+.dialog-chat-mine .dialog-chat-text {
+    margin-left: 0;
+    text-align: left;
+    background-color: #5FB878;
+    color: #fff;
+}
+
+/*聊天工具*/
+.chat-dialog .main-dialog .dialog-tool {
+    height: 35px;
+    background-color: #f6f6f6;
+}
+
+.chat-dialog .main-dialog .dialog-tool .icon {
+    cursor: pointer;
+    line-height: 35px;
+    font-size: 20px;
+    margin-left: 15px;
+}
+
+.chat-dialog .main-dialog .dialog-tool .icon span {
+    font-size: 12px;
+    margin-left: 5px;
+    position: absolute;
+    display: inline-block;
+}
+
+.chat-dialog .main-dialog .dialog-tool .icon-log {
+    float: right;
+    margin-right: 70px;
+}
+
+/*聊天消息*/
+.chat-dialog .main-dialog .dialog-message {
+    margin-left: 10px;
+    height: 200px;
+    overflow-y: auto;
+}
+
+.chat-dialog .main-dialog .dialog-message textarea {
+    display: block;
+    width: 600px;
+    padding: 5px 0 0;
+    height: 68px;
+    line-height: 20px;
+    border: none;
+    overflow: auto;
+    resize: none;
+    background: 0 0;
+}
+
+.chat-dialog .main-dialog .dialog-message textarea:focus {
+    outline: none;
+}
+
+/*聊天底部*/
+.chat-dialog .main-dialog .dialog-footer {
+    bottom: 0px;
+    background-color: #f6f6f6;
+    position: absolute;
+    height: 35px;
+    width: 100%;
+}
+
+.chat-dialog .main-dialog .dialog-footer span {
+    cursor: pointer;
+    display: inline-block;
+    height: 25px;
+    line-height: 25px;
+    font-size: 14px;
+    color: white;
+    background-color: #69BC80;
+    float: right;
+    margin-right: 20px;
+    width: 65px;
+    border-radius: 3px;
+    text-align: center;
+}

@@ -1,0 +1,232 @@
+<head>
+    <meta charset="UTF-8"/>
+    <title></title>
+    <script type="text/javascript" src="/js/jquery-3.3.1.min.js"></script>
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/chat.css">
+</head>
+
+<body>
+
+<!--贴边小面板-->
+<div class="chat-min hide">
+    <div class="min-content" title="展开聊天"><i class="arrow fa fa-angle-right"></i></div>
+</div>
+
+<!--聊天主面板-->
+<div class="chat-box" id="chat-box">
+    <div class="main-box">
+        <div class="box-head">
+            <img src="/img/avatar/default.png" class="user-image" alt="点击登录"/>
+            <span class="close"><span>×</span></span>
+        </div>
+        <div class="box-tab">
+            <div prop="tab_user" title="联系人" class="tab active"><i class="fa fa-user"></i></div>
+            <div prop="tab_group" title="群组" class="tab"><i class="fa fa-users"></i></div>
+            <div prop="tab_chat" title="聊天室" class="tab"><i class="fa fa-twitch"></i></div>
+        </div>
+        <div class="box-content">
+            <div prop="tab_user" class="active">
+                <ul>
+                    <li><img src="/img/avatar/haijiaoluoluo.jpg"
+                             class="member-image"/><span>海角诺诺</span></li>
+                    <li><img src="/img/avatar/en.png"
+                             class="member-image"/><span>嗯</span></li>
+                    <li><img src="/img/avatar/wangnima.jpg"
+                             class="member-image"/><span>王尼玛</span></li>
+                    <li><img src="/img/avatar/apple.jpg"
+                             class="member-image"/><span>apple</span></li>
+                    <li><img src="/img/avatar/redsun.gif"
+                             class="member-image"/><span>redsun</span></li>
+                    <li><img src="/img/avatar/qingsong.jpg"
+                             class="member-image"/><span>轻松</span></li>
+                    <li><img src="/img/avatar/Jeff.gif"
+                             class="member-image"/><span>Jeff</span></li>
+                    <li><img src="/img/avatar/qianxing.jpg"
+                             class="member-image"/><span>前行</span></li>
+                </ul>
+            </div>
+            <div prop="tab_group" class="hide">群组开发中</div>
+            <div prop="tab_chat" class="hide">聊天室开发中</div>
+        </div>
+        <div class="box-footer">
+            <i title="退出登录" class="icon fa fa-power-off"></i>
+            <i title="锁屏" class="icon fa fa-coffee"></i>
+            <i title="设置" class="icon fa fa-cog"></i>
+        </div>
+    </div>
+</div>
+
+<!--对话框整体-->
+<div class="chat-dialog hide" id="chat-dialog">
+    <div class="main-dialog">
+        <div class="dialog-head">
+            <img class="member-image" src="/img/avatar/haijiaoluoluo.jpg" />
+            <span class="member-name">海角诺诺</span>
+            <span class="close" btn="close"><span>×</span></span>
+        </div>
+        <div class="dialog-content">
+            <ul>
+                <li class="dialog-chat-mine">
+                    <div class="dialog-chat-user">
+                        <cite><i>2018-09-17 13:55:03</i>redsun</cite>
+                        <img src="/img/avatar/redsun.gif">
+                    </div>
+                    <div class="dialog-chat-text">
+                        <div class="dialog-chat-triangle"></div>
+                        <div class="dialog-chat-message">hi! 本周的任务整的咋样了</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="dialog-chat-user">
+                        <img src="/img/avatar/haijiaoluoluo.jpg">
+                        <cite>海角诺诺<i>2018-09-17 13:55:03</i></cite>
+                    </div>
+                    <div class="dialog-chat-text">
+                        <div class="dialog-chat-triangle"></div>
+                        <div class="dialog-chat-message">快好了，你看看这个样式做的还可以吧?</div>
+                    </div>
+                </li>
+                <li class="dialog-chat-mine">
+                    <div class="dialog-chat-user">
+                        <cite><i>2018-09-17 13:55:03</i>redsun</cite>
+                        <img src="/img/avatar/redsun.gif">
+                    </div>
+                    <div class="dialog-chat-text">
+                        <div class="dialog-chat-triangle"></div>
+                        <div class="dialog-chat-message">还原度挺高的，就是有几个问题，有些按钮的功能还未实现，而且目前只有样式，头像也是写死的，也就只能看看，希望后续能把功能加上去，这个东西我不急，你尽快弄！</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="dialog-tool">
+            <i title="选择表情" class="icon fa fa-smile-o"></i>
+            <i title="发送图片" class="icon fa fa-image"></i>
+            <i title="发送文件" class="icon fa fa-folder-o"></i>
+            <i title="聊天记录" class="icon icon-log fa fa-clock-o"><span>聊天记录</span></i>
+        </div>
+        <div class="dialog-message">
+            <textarea></textarea>
+        </div>
+        <div class="dialog-footer">
+            <span btn="send">发送</span>
+            <span btn="close">关闭</span>
+        </div>
+    </div>
+</div>
+
+<!--模板-->
+<li class="dialog-chat-mine hide dialog-chat-template">
+    <div class="dialog-chat-user">
+        <cite><i>2018-09-17 13:55:03</i>redsun</cite>
+        <img src="/img/avatar/redsun.gif">
+    </div>
+    <div class="dialog-chat-text">
+        <div class="dialog-chat-triangle"></div>
+        <div class="dialog-chat-message"></div>
+    </div>
+</li>
+
+</body>
+
+<script type="text/javascript">
+    $(function () {
+        init();
+        //聊天主面板 显示/隐藏
+        $('.min-content').click(function () {
+            $('.chat-min,.chat-box').toggleClass('hide');
+        });
+        //关闭聊天主面板
+        $('.chat-box').on('click', '.close', function () {
+            $('.chat-min,.chat-box').toggleClass('hide');
+        });
+        //打开聊天对话框
+        $('.box-content [prop="tab_user"]').on('click', 'ul li', function () {
+            $('.chat-dialog').removeClass('hide');
+            $('.dialog-content').scrollTop($('.dialog-content')[0].scrollHeight);
+        });
+        //发送聊天信息  ctrl+enter 换行  enter发送信息
+        $('.chat-dialog').on('keypress', '.dialog-message textarea', function (event) {
+            if (event.ctrlKey && event.keyCode == 10) {
+                $(this).val($(this).val() + '\n');
+            }
+            else if (event.keyCode == 13) {
+                sendMessage();
+                return false;
+            }
+        });
+        //发送按钮 发送信息
+        $('.chat-dialog').on('click', '[btn="send"]', function () {
+            sendMessage();
+        });
+        //关闭聊天对话框面板
+        $('.chat-dialog').on('click', '[btn="close"]', function () {
+            $('.chat-dialog').toggleClass('hide');
+        });
+        //tab切换
+        $('.box-tab').on('click', 'div', function () {
+            if (!$(this).hasClass('active')) {
+                $(this).addClass('active').siblings().removeClass('active');
+                var prop = $(this).attr('prop');
+                $('.box-content').find('[prop="' + prop + '"]').removeClass('hide').addClass('active')
+                    .siblings().addClass('hide').removeClass('active');
+            }
+        });
+    });
+
+    //初始化
+    function init() {
+        /*面板变可拖动*/
+        $('#chat-box').find('.main-box').css('position', 'absolute'); //变absolute后 才可拖动
+        var chatHead = $('#chat-box').find('.box-head')[0];
+        var chatBox = $('#chat-box')[0];
+        chatHead.onmousedown = function (ev) {
+            var oevent = ev || event;
+            var distanceX = oevent.clientX - chatBox.offsetLeft;
+            var distanceY = oevent.clientY - chatBox.offsetTop;
+
+            document.onmousemove = function (ev) {
+                var oevent = ev || event;
+                chatBox.style.left = oevent.clientX - distanceX + 'px';
+                chatBox.style.top = oevent.clientY - distanceY + 'px';
+            };
+            document.onmouseup = function () {
+                document.onmousemove = null;
+                document.onmouseup = null;
+            };
+        };
+
+        /*聊天对话框变可拖动*/
+        $('#chat-dialog').find('.main-dialog').css('position', 'absolute'); //变absolute后 才可拖动
+        var dialogHead = $('#chat-dialog').find('.dialog-head')[0];
+        var dialogBox = $('#chat-dialog')[0];
+        dialogHead.onmousedown = function (ev) {
+            var oevent = ev || event;
+            var distanceX = oevent.clientX - dialogBox.offsetLeft;
+            var distanceY = oevent.clientY - dialogBox.offsetTop;
+
+            document.onmousemove = function (ev) {
+                var oevent = ev || event;
+                dialogBox.style.left = oevent.clientX - distanceX + 'px';
+                dialogBox.style.top = oevent.clientY - distanceY + 'px';
+            };
+            document.onmouseup = function () {
+                document.onmousemove = null;
+                document.onmouseup = null;
+            };
+        }
+    }
+
+    //发送信息
+    function sendMessage() {
+        var message = $('.dialog-message').find('textarea').val().toString().replace(/\n/g,'<br>');
+        if(message.toString().trim() == ''){
+            return false;
+        }
+        var $template = $('.dialog-chat-template').clone().removeClass('dialog-chat-template').removeClass('hide');
+        $template.find('.dialog-chat-message').html(message);
+        $('.dialog-content').find('ul').append($template);
+        $('.dialog-content').scrollTop($('.dialog-content')[0].scrollHeight);
+        $('.dialog-message').find('textarea').val('');
+    }
+</script>
