@@ -2,8 +2,10 @@
     <meta charset="UTF-8"/>
     <title></title>
     <script type="text/javascript" src="/js/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="/js/common.js"></script>
     <link rel="stylesheet" href="/css/font-awesome.min.css">
     <link rel="stylesheet" href="/css/chat.css">
+    <link rel="stylesheet" href="/css/common.css">
 </head>
 
 <body>
@@ -17,7 +19,7 @@
 <div class="chat-box" id="chat-box">
     <div class="main-box">
         <div class="box-head">
-            <img src="/img/avatar/default.png" class="user-image" alt="点击登录"/>
+            <img src="/img/avatar/redsun.gif" class="user-image" alt="点击登录"/>
             <span class="close"><span>×</span></span>
         </div>
         <div class="box-tab">
@@ -50,7 +52,7 @@
             <div prop="tab_chat" class="hide">聊天室开发中</div>
         </div>
         <div class="box-footer">
-            <i title="退出登录" class="icon fa fa-power-off"></i>
+            <i btn="logout" style="color: red;" title="退出登录" class="icon fa fa-power-off"></i>
             <i title="锁屏" class="icon fa fa-coffee"></i>
             <i title="设置" class="icon fa fa-cog"></i>
         </div>
@@ -171,6 +173,13 @@
                 $('.box-content').find('[prop="' + prop + '"]').removeClass('hide').addClass('active')
                     .siblings().addClass('hide').removeClass('active');
             }
+        });
+
+        //退出登录
+        $('[btn="logout"]').click(function () {
+            Dialog.confirm('确定退出?', function () {
+                window.top.location.href = '{{route('user_logout')}}';
+            })
         });
     });
 

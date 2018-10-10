@@ -1,0 +1,235 @@
+/*提示框*/
+#postMask{display: block;position: fixed;top: 0;bottom: 0;z-index: 3000;height:100%;width:100%;background-color: rgba(0,0,0,.4);}
+#modalMask{display: block;position: fixed;top: 0;bottom: 0;z-index: 2000;height:100%;width:100%;background-color: rgba(0,0,0,.4);}
+#success{
+    background-color: #eee;
+    position: fixed;
+    top: 30%;
+    z-index: 3001;
+    left: 50%;
+    font-size: 20px;
+    padding: 10px 20px;
+    border-radius: 3px;
+    margin-left: -150px;
+}
+.alert_a{
+    background: #f1eaea!important;
+    min-width: 250px;
+    min-height: 100px;
+    position: absolute;
+    top: 50%!important;
+    margin-top: -50px!important;
+}
+.qjs_success{
+    line-height: 100px;
+    font-weight: bold;
+    color: #676767;
+    background-image: url("../img/common/correct.png");
+    background-size: 50px;
+    background-position: 4% 50% ;
+    background-repeat: no-repeat;
+    padding-left: 80px;
+}
+.qjs_error{
+    line-height: 100px;
+    font-weight: bold;
+    color: #676767;
+    background-image: url("../img/common/errred.png");
+    background-size: 50px;
+    background-position: 4% 50% ;
+    background-repeat: no-repeat;
+    padding-left: 80px;
+}
+
+/*confirm*/
+.verticalAlign{ vertical-align:middle; display:inline-block; height:100%; margin-left:-1px;}
+.xcConfirm .xc_layer{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    opacity: 0.4;
+    z-index: 2001;
+}
+.xcConfirm .popBox{
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    background-color: #ffffff;
+    z-index: 2001;
+    width: 520px;
+    height: 243px;
+    margin-left: -260px;
+    margin-top: -121px;
+    font-weight: bold;
+    color: #535e66;
+}
+.xcConfirm .popBox .ttBox{
+    height: 50px;
+    line-height: 50px;
+    border-bottom: 1px dashed #ddd;
+}
+.xcConfirm .popBox .ttBox .tt{
+    font-size: 18px;
+    color: #999;
+    left: 25px;
+    position: relative;
+}
+.xcConfirm .popBox .ttBox .close{
+    cursor: pointer;
+    border: none;
+    float: right;
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1;
+    color: #000;
+    text-shadow: 0 1px 0 #fff;
+    filter: alpha(opacity=20);
+    opacity: .2;
+    padding: 5px;
+    margin-right: 10px;
+    margin-top: 10px;
+}
+.xcConfirm .popBox .txtBox{
+    padding: 30px;
+    text-align: center
+}
+.xcConfirm .popBox .txtBox .bigIcon{
+    display: inline-block;
+    text-align: center;
+    margin-right: 20px;
+    width: 24px;
+    height: 24px;
+    background-image: url("../img/common/attr.png");
+    background-repeat: no-repeat;
+    background-size: 24px;
+    background-position: 0!important;
+    position: relative;
+    top: 4px;
+}
+.xcConfirm .popBox .txtBox p{
+    font-size: 24px;
+    display: inline-block;
+}
+.xcConfirm .popBox .sgBtn{
+    display: inline-block;
+    margin-top: 5px;
+    min-width: 70px;
+    float: right;
+    margin-right: 18px;
+}
+.xcConfirm .popBox .btnArea{
+    border-top: 1px dashed #ddd;
+}
+.xcConfirm .popBox .btnArea .btnGroup{
+    margin-top: 5px;
+}
+/*modal*/
+.xcModal{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2001;
+}
+.xcModal .popBox{
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    background-color: #ffffff;
+    width: 700px;
+    height: 450px;
+    margin-left: -350px;
+    margin-top: -225px;
+}
+.xcModal .popBox .ttBox{
+    cursor: move;
+    height: 50px;
+    line-height: 50px;
+    border-bottom: 1px dashed #ddd;
+}
+.xcModal .popBox .ttBox .tt{
+    font-size: 18px;
+    color: #999;
+    left: 25px;
+    position: relative;
+}
+.xcModal .popBox .ttBox .close{
+    padding: 5px;
+    margin-right: 10px;
+    margin-top: 10px;
+}
+.xcModal .popBox .txtBox{
+    max-height: 340px;
+    overflow-y: auto;
+    padding: 30px;
+    text-align: center
+}
+.xcModal .popBox .txtBox .bigIcon{
+    display: inline-block;
+    text-align: center;
+    margin-right: 20px;
+    width: 24px;
+    height: 24px;
+    background-image: url("../img/common/attr.png");
+    background-repeat: no-repeat;
+    background-size: 24px;
+    background-position: 0!important;
+    position: relative;
+    top: 4px;
+}
+.xcModal .popBox .txtBox p{
+    font-size: 24px;
+    display: inline-block;
+}
+.xcModal .popBox .sgBtn {
+    display: inline-block;
+    margin-top: 5px;
+    min-width: 70px;
+    float: right;
+    margin-right: 18px;
+}
+.xcModal .popBox .btnArea{
+    border-top: 1px dashed #ddd;
+}
+.xcModal .popBox .btnArea .btnGroup{
+    padding-top: 10px;
+    height: 50px;
+}
+
+.btn {
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+.btn-info {
+    background-color: #fff;
+    border-color: #5874C8;
+    color: #5874C8;
+}
+.btn-default {
+    background-color: #5874C8;
+    color: #fff;
+    border-color: #5874C8;
+}
