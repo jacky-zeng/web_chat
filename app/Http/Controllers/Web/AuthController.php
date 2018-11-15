@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Repositories\AuthRepository;
+use App\Util\GenerateNickName;
 use Illuminate\Http\Request;
 use App\Util\Code;
 use Auth;
@@ -13,6 +14,42 @@ use Cache;
 
 class AuthController extends Controller
 {
+    //游客登录
+    public function touristLogin(Request $request, AuthRepository $authRepository)
+    {
+        $params = $request->all();
+
+        if ($request->isMethod('post')) {
+            $validator = Validator::make($params, [
+                'nick_name' => 'required',
+            ], [
+                'nick_name.required' => '请设置您的大名',
+            ]);
+
+            if ($validator->fails()) {
+                return Redirect::route('tourist_login')->withErrors($validator->errors()->first());
+            }
+            $rs = $authRepository->touristLogin($params['nick_name']);
+            if (! $rs) {
+                return Redirect::route('tourist_login')->withErrors($authRepository->firstMsg('进入系统失败'));
+            }
+
+            return Redirect::route('web_chat_chat')->withCookie($rs['key'], $rs['value']);
+        } else {
+            return view('web.auth.touristLogin', [
+                'nick_name' => GenerateNickName::generate()
+            ]);
+        }
+    }
+
+    //生成随机游客名称
+    public function getNickName()
+    {
+        return $this->successResponse('获取成功', [
+            'nick_name' => GenerateNickName::generate()
+        ]);
+    }
+
     //注册
     public function register(Request $request, AuthRepository $authRepository)
     {

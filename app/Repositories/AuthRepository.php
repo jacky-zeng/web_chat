@@ -6,12 +6,36 @@ use App\Models\User;
 use App\Util\CacheKey;
 use App\Util\Errors;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
+use Redis;
 use Validator;
 
 class AuthRepository
 {
     use Errors;
+
+    /**
+     * 游客登录
+     * @param $nick_name
+     * @return array
+     */
+    public function touristLogin($nick_name)
+    {
+        $name = 'tourist_'.mt_rand(1000000, 9999999).time().mb_substr($nick_name, 0, 1);
+        $user = User::where('name', $name)->first();
+        if (! empty($user)) {
+            $this->error('请重试');
+
+            return false;
+        }
+        $user = User::createModel([
+            'name'      => $name,
+            'password'  => $name,
+            'nick_name' => $nick_name
+        ]);
+        $single_token = $this->getSingleToken($user);
+
+        return $single_token;
+    }
 
     /**
      * 注册
@@ -33,8 +57,9 @@ class AuthRepository
 
             return false;
         }
-        $user         = User::createModel($params);
-        $single_token = $this->getSingleToken($user);
+        $params['nick_name'] = $params['name'];
+        $user                = User::createModel($params);
+        $single_token        = $this->getSingleToken($user);
 
         return $single_token;
     }
@@ -80,7 +105,7 @@ class AuthRepository
         $cache_key    = sprintf(CacheKey::USER_SINGLE_LOGIN_KEY, $user_id);
         $time         = time();
         $single_token = md5($user_id.$time);
-        Cache::forever($cache_key, $single_token);
+        Redis::set($cache_key, $single_token);
 
         $rs = [
             'key'   => $cache_key,

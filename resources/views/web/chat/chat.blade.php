@@ -3,12 +3,21 @@
     <title></title>
     <script type="text/javascript" src="/js/jquery-3.3.1.min.js"></script>
     <script type="text/javascript" src="/js/common.js"></script>
+    <script type="text/javascript" src="/js/swiper.min.js"></script>
+    <script type="text/javascript" src="/js/chat/chat.js"></script>
+    <script type="text/javascript" src="/js/chat/websocket.js"></script>
     <link rel="stylesheet" href="/css/font-awesome.min.css">
     <link rel="stylesheet" href="/css/chat.css">
     <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/swiper.min.css">
 </head>
 
 <body>
+
+<input type="hidden" name="user_id" value="{{ \App\Util\EnDecryption::encrypt(auth("user-auth")->user()->id) }}">
+<input type="hidden" name="token" value="{{ $token }}">
+<input type="hidden" name="nick_name" value="{{auth("user-auth")->user()->nick_name}}">
+<input type="hidden" name="avatar" value="{{auth("user-auth")->user()->avatar}}">
 
 <!--贴边小面板-->
 <div class="chat-min hide">
@@ -19,7 +28,7 @@
 <div class="chat-box" id="chat-box">
     <div class="main-box">
         <div class="box-head">
-            <img src="/img/avatar/redsun.gif" class="user-image" alt="点击登录"/>
+            <img src="{{auth("user-auth")->user()->avatar}}" class="user-image"/>
             <span class="close"><span>×</span></span>
         </div>
         <div class="box-tab">
@@ -30,22 +39,8 @@
         <div class="box-content">
             <div prop="tab_user" class="active">
                 <ul>
-                    <li><img src="/img/avatar/haijiaoluoluo.jpg"
-                             class="member-image"/><span>海角诺诺</span></li>
-                    <li><img src="/img/avatar/en.png"
-                             class="member-image"/><span>嗯</span></li>
-                    <li><img src="/img/avatar/wangnima.jpg"
-                             class="member-image"/><span>王尼玛</span></li>
-                    <li><img src="/img/avatar/apple.jpg"
-                             class="member-image"/><span>apple</span></li>
-                    <li><img src="/img/avatar/redsun.gif"
-                             class="member-image"/><span>redsun</span></li>
-                    <li><img src="/img/avatar/qingsong.jpg"
-                             class="member-image"/><span>轻松</span></li>
-                    <li><img src="/img/avatar/Jeff.gif"
-                             class="member-image"/><span>Jeff</span></li>
-                    <li><img src="/img/avatar/qianxing.jpg"
-                             class="member-image"/><span>前行</span></li>
+                    {{--<li><img src="/img/avatar/haijiaoluoluo.jpg"--}}
+                             {{--class="member-image"/><span>海角诺诺</span></li>--}}
                 </ul>
             </div>
             <div prop="tab_group" class="hide">群组开发中</div>
@@ -59,46 +54,36 @@
     </div>
 </div>
 
-<!--对话框整体-->
-<div class="chat-dialog hide" id="chat-dialog">
+<!--对话框模板整体-->
+<div class="chat-dialog hide" prop="chat-dialog-template">
     <div class="main-dialog">
         <div class="dialog-head">
-            <img class="member-image" src="/img/avatar/haijiaoluoluo.jpg" />
-            <span class="member-name">海角诺诺</span>
+            <img class="member-image" prop="avatar" src="{{--/img/avatar/haijiaoluoluo.jpg--}}" />
+            <span class="member-name" prop="nick_name">{{--海角诺诺--}}</span>
             <span class="close" btn="close"><span>×</span></span>
         </div>
         <div class="dialog-content">
             <ul>
-                <li class="dialog-chat-mine">
-                    <div class="dialog-chat-user">
-                        <cite><i>2018-09-17 13:55:03</i>redsun</cite>
-                        <img src="/img/avatar/redsun.gif">
-                    </div>
-                    <div class="dialog-chat-text">
-                        <div class="dialog-chat-triangle"></div>
-                        <div class="dialog-chat-message">hi! 本周的任务整的咋样了</div>
-                    </div>
-                </li>
-                <li>
-                    <div class="dialog-chat-user">
-                        <img src="/img/avatar/haijiaoluoluo.jpg">
-                        <cite>海角诺诺<i>2018-09-17 13:55:03</i></cite>
-                    </div>
-                    <div class="dialog-chat-text">
-                        <div class="dialog-chat-triangle"></div>
-                        <div class="dialog-chat-message">快好了，你看看这个样式做的还可以吧?</div>
-                    </div>
-                </li>
-                <li class="dialog-chat-mine">
-                    <div class="dialog-chat-user">
-                        <cite><i>2018-09-17 13:55:03</i>redsun</cite>
-                        <img src="/img/avatar/redsun.gif">
-                    </div>
-                    <div class="dialog-chat-text">
-                        <div class="dialog-chat-triangle"></div>
-                        <div class="dialog-chat-message">还原度挺高的，就是有几个问题，有些按钮的功能还未实现，而且目前只有样式，头像也是写死的，也就只能看看，希望后续能把功能加上去，这个东西我不急，你尽快弄！</div>
-                    </div>
-                </li>
+                {{--<li class="dialog-chat-mine">--}}
+                    {{--<div class="dialog-chat-user">--}}
+                        {{--<cite><i prop="mine_time">2018-09-17 13:55:03</i><span prop="mine_nick_name">redsun</span></cite>--}}
+                        {{--<img prop="mine_avatar" src="/img/avatar/redsun.gif">--}}
+                    {{--</div>--}}
+                    {{--<div class="dialog-chat-text">--}}
+                        {{--<div class="dialog-chat-triangle"></div>--}}
+                        {{--<div class="dialog-chat-message" prop="mine_msg">hi! 本周的任务整的咋样了</div>--}}
+                    {{--</div>--}}
+                {{--</li>--}}
+                {{--<li>--}}
+                    {{--<div class="dialog-chat-user">--}}
+                        {{--<img prop="user_avatar" src="/img/avatar/haijiaoluoluo.jpg">--}}
+                        {{--<cite><span prop="user_nick_name">海角诺诺</span><i prop="user_time">2018-09-17 13:55:03</i></cite>--}}
+                    {{--</div>--}}
+                    {{--<div class="dialog-chat-text">--}}
+                        {{--<div class="dialog-chat-triangle"></div>--}}
+                        {{--<div class="dialog-chat-message" prop="user_msg">快好了，你看看这个样式做的还可以吧?</div>--}}
+                    {{--</div>--}}
+                {{--</li>--}}
             </ul>
         </div>
         <div class="dialog-tool">
@@ -117,125 +102,37 @@
     </div>
 </div>
 
-<!--模板-->
-<li class="dialog-chat-mine hide dialog-chat-template">
+<!--底部任务栏小聊天tab-->
+<div class="swiper-container swiper-container-tab chat-bottom" prop="chat-bottom">
+    <ul class="swiper-wrapper">
+        {{--<li class="swiper-slide">--}}
+            {{--<a href="#">111</a><span prop="close">×</span>--}}
+        {{--</li>--}}
+    </ul>
+</div>
+
+<!--聊天模板-->
+<!--自己说话-->
+<li class="dialog-chat-mine hide" prop="dialog-chat-mine-template">
     <div class="dialog-chat-user">
-        <cite><i>2018-09-17 13:55:03</i>redsun</cite>
-        <img src="/img/avatar/redsun.gif">
+        <cite><i prop="mine_time"></i><span prop="mine_nick_name"></span></cite>
+        <img prop="mine_avatar" src="">
     </div>
     <div class="dialog-chat-text">
         <div class="dialog-chat-triangle"></div>
-        <div class="dialog-chat-message"></div>
+        <div class="dialog-chat-message" prop="mine_msg"></div>
+    </div>
+</li>
+<!--对方说话-->
+<li class="hide" prop="dialog-chat-user-template">
+    <div class="dialog-chat-user">
+        <img prop="user_avatar" src="">
+        <cite><span prop="user_nick_name"></span><i prop="user_time"></i></cite>
+    </div>
+    <div class="dialog-chat-text">
+        <div class="dialog-chat-triangle"></div>
+        <div class="dialog-chat-message" prop="user_msg"></div>
     </div>
 </li>
 
 </body>
-
-<script type="text/javascript">
-    $(function () {
-        init();
-        //聊天主面板 显示/隐藏
-        $('.min-content').click(function () {
-            $('.chat-min,.chat-box').toggleClass('hide');
-        });
-        //关闭聊天主面板
-        $('.chat-box').on('click', '.close', function () {
-            $('.chat-min,.chat-box').toggleClass('hide');
-        });
-        //打开聊天对话框
-        $('.box-content [prop="tab_user"]').on('click', 'ul li', function () {
-            $('.chat-dialog').removeClass('hide');
-            $('.dialog-content').scrollTop($('.dialog-content')[0].scrollHeight);
-        });
-        //发送聊天信息  ctrl+enter 换行  enter发送信息
-        $('.chat-dialog').on('keypress', '.dialog-message textarea', function (event) {
-            if (event.ctrlKey && event.keyCode == 10) {
-                $(this).val($(this).val() + '\n');
-            }
-            else if (event.keyCode == 13) {
-                sendMessage();
-                return false;
-            }
-        });
-        //发送按钮 发送信息
-        $('.chat-dialog').on('click', '[btn="send"]', function () {
-            sendMessage();
-        });
-        //关闭聊天对话框面板
-        $('.chat-dialog').on('click', '[btn="close"]', function () {
-            $('.chat-dialog').toggleClass('hide');
-        });
-        //tab切换
-        $('.box-tab').on('click', 'div', function () {
-            if (!$(this).hasClass('active')) {
-                $(this).addClass('active').siblings().removeClass('active');
-                var prop = $(this).attr('prop');
-                $('.box-content').find('[prop="' + prop + '"]').removeClass('hide').addClass('active')
-                    .siblings().addClass('hide').removeClass('active');
-            }
-        });
-
-        //退出登录
-        $('[btn="logout"]').click(function () {
-            Dialog.confirm('确定退出?', function () {
-                window.top.location.href = '{{route('user_logout')}}';
-            })
-        });
-    });
-
-    //初始化
-    function init() {
-        /*面板变可拖动*/
-        $('#chat-box').find('.main-box').css('position', 'absolute'); //变absolute后 才可拖动
-        var chatHead = $('#chat-box').find('.box-head')[0];
-        var chatBox = $('#chat-box')[0];
-        chatHead.onmousedown = function (ev) {
-            var oevent = ev || event;
-            var distanceX = oevent.clientX - chatBox.offsetLeft;
-            var distanceY = oevent.clientY - chatBox.offsetTop;
-
-            document.onmousemove = function (ev) {
-                var oevent = ev || event;
-                chatBox.style.left = oevent.clientX - distanceX + 'px';
-                chatBox.style.top = oevent.clientY - distanceY + 'px';
-            };
-            document.onmouseup = function () {
-                document.onmousemove = null;
-                document.onmouseup = null;
-            };
-        };
-
-        /*聊天对话框变可拖动*/
-        $('#chat-dialog').find('.main-dialog').css('position', 'absolute'); //变absolute后 才可拖动
-        var dialogHead = $('#chat-dialog').find('.dialog-head')[0];
-        var dialogBox = $('#chat-dialog')[0];
-        dialogHead.onmousedown = function (ev) {
-            var oevent = ev || event;
-            var distanceX = oevent.clientX - dialogBox.offsetLeft;
-            var distanceY = oevent.clientY - dialogBox.offsetTop;
-
-            document.onmousemove = function (ev) {
-                var oevent = ev || event;
-                dialogBox.style.left = oevent.clientX - distanceX + 'px';
-                dialogBox.style.top = oevent.clientY - distanceY + 'px';
-            };
-            document.onmouseup = function () {
-                document.onmousemove = null;
-                document.onmouseup = null;
-            };
-        }
-    }
-
-    //发送信息
-    function sendMessage() {
-        var message = $('.dialog-message').find('textarea').val().toString().replace(/\n/g,'<br>');
-        if(message.toString().trim() == ''){
-            return false;
-        }
-        var $template = $('.dialog-chat-template').clone().removeClass('dialog-chat-template').removeClass('hide');
-        $template.find('.dialog-chat-message').html(message);
-        $('.dialog-content').find('ul').append($template);
-        $('.dialog-content').scrollTop($('.dialog-content')[0].scrollHeight);
-        $('.dialog-message').find('textarea').val('');
-    }
-</script>

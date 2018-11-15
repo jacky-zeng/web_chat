@@ -21,6 +21,8 @@ Route::group( [
     'prefix' => '',
     'namespace'  => 'Web'
 ], function() {
+    Route::match(['get', 'post'], 'touristLogin', 'AuthController@touristLogin')->name('tourist_login');                //游客登录
+    Route::get('getNickName', 'AuthController@getNickName')->name('get_nick_name');                                     //生成随机游客名称
     Route::post('register', 'AuthController@register')->name('user_register');                                          //注册
     Route::match(['get', 'post'], 'login', 'AuthController@login')->name('user_login');                                 //登录
     Route::get('logout', 'AuthController@logout')->name('user_logout');                                                 //退出登录

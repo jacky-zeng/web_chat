@@ -30,7 +30,7 @@
 /*聊天主面板*/
 .chat-box {
     position: fixed;
-    bottom: 5px;
+    bottom: 50px;
     right: 5px;
     width: 260px;
     height: 520px;
@@ -332,7 +332,6 @@
 /*聊天消息*/
 .chat-dialog .main-dialog .dialog-message {
     margin-left: 10px;
-    height: 200px;
     overflow-y: auto;
 }
 
@@ -374,4 +373,32 @@
     width: 65px;
     border-radius: 3px;
     text-align: center;
+    margin-top: 6px;
+}
+/*底部任务栏小聊天tab*/
+.chat-bottom {
+    position: fixed !important;
+    width: 100%;
+    bottom: 0px;
+}
+.chat-bottom .swiper-wrapper li {
+    list-style: none;
+    text-align: center;
+    line-height: 30px;
+    width: 150px;
+    height: 30px;
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+}
+.chat-bottom .swiper-wrapper .message_not_read {
+    background-color: #f5b588;
+}
+.chat-bottom .swiper-wrapper li a {
+    text-decoration: none;
+    color: black;
+}
+.chat-bottom .swiper-wrapper li span {
+    cursor: pointer;
+    float: right;
+    margin-right: 5px;
 }

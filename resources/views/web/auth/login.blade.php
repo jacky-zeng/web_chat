@@ -19,10 +19,10 @@
 
     <style type="text/css">
         body {
-            color: #999;
-            background: url('http://www.zengyanqi.com/wp-content/themes/twentyseventeen/assets/images/header.jpg');
-            background-size: cover;
-            background-repeat: no-repeat;
+            color:rgba(161,165,185,1);
+            font-family:PingFangSC-Regular;
+            background: url('http://www.zengyanqi.com/wp-content/themes/twentyseventeen/assets/images/header.jpg') no-repeat center/cover;
+            height: 100vh;
         }
 
         a {
@@ -123,6 +123,7 @@
                         <div class="form-group">
                             <button type="submit" class="btn btn-success btn-lg btn-block">登 录</button>
                             <a id="toRegister" href="#">没有账号?去注册</a>
+                            <a style="float: right;" href="{{ route('tourist_login') }}">游客登录</a>
                         </div>
                     </form>
 
@@ -152,6 +153,7 @@
                         <div class="form-group">
                             <button type="submit" class="btn btn-success btn-lg btn-block">注 册</button>
                             <a id="toLogin" href="#">已有账号?去登录</a>
+                            <a style="float: right;" href="{{ route('tourist_login') }}">游客登录</a>
                         </div>
                     </form>
 
