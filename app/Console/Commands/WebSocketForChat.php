@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\User;
 use App\Models\WebSocket;
 use App\Util\CacheKey;
+use App\Util\TuLingChat;
 use Illuminate\Console\Command;
 use Redis;
 use App\Util\EnDecryption;
@@ -216,16 +217,35 @@ class WebSocketForChat extends Command
                 $ws_server->push($data['fd'], WebSocket::TYPE_USER_LOGOUT.WebSocket::SPLIT_WORD.json_encode($data['data']));
                 break;
             case WebSocket::TYPE_MSG:
-                $send       = [
-                    'from_user_id' => $data['data']['from_user_id'],
-                    'to_user_id'   => $data['data']['to_user_id'],
-                    'message'      => $data['data']['message']
-                ];
-                $to_user_id = $data['data']['to_user_id'];
-                $to_user    = Redis::hGet(CacheKey::USER_IDS_KEY, $to_user_id);
-                $to_fd      = json_decode($to_user, true)['fd'];
-                //$this->info('发送聊天信息:'.$to_fd.'|'.WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
-                $ws_server->push($to_fd, WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
+                if($data['data']['from_user_id'] == $data['data']['to_user_id']){
+                    //图灵机器人需要user_id 可能有限制 所以分配100个
+                    $tu_ling_user_id = EnDecryption::decrypt($data['data']['from_user_id']) % 100;
+                    //使用聊天机器人
+                    $messages = TuLingChat::ask($tu_ling_user_id, $data['data']['message']);
+                    foreach ($messages as $message){
+                        $send       = [
+                            'from_user_id' => $data['data']['from_user_id'],
+                            'to_user_id'   => $data['data']['to_user_id'],
+                            'message'      => $message
+                        ];
+                        $to_user_id = $data['data']['to_user_id'];
+                        $to_user    = Redis::hGet(CacheKey::USER_IDS_KEY, $to_user_id);
+                        $to_fd      = json_decode($to_user, true)['fd'];
+                        //$this->info('发送聊天信息:'.$to_fd.'|'.WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
+                        $ws_server->push($to_fd, WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
+                    }
+                }else{
+                    $send       = [
+                        'from_user_id' => $data['data']['from_user_id'],
+                        'to_user_id'   => $data['data']['to_user_id'],
+                        'message'      => $data['data']['message']
+                    ];
+                    $to_user_id = $data['data']['to_user_id'];
+                    $to_user    = Redis::hGet(CacheKey::USER_IDS_KEY, $to_user_id);
+                    $to_fd      = json_decode($to_user, true)['fd'];
+                    //$this->info('发送聊天信息:'.$to_fd.'|'.WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
+                    $ws_server->push($to_fd, WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
+                }
                 break;
             default:
                 break;

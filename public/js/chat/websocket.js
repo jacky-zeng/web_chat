@@ -65,9 +65,18 @@ function initUserList(data) {
     data = $.parseJSON(data);
     var $user_li = '';
     $.each(data, function (key, item) {
-        $user_li += '<li user_id="' + key + '" avatar="' + item['avatar'] + '" nick_name="' + item['nick_name'] + '">'
-            + '<img src="' + item['avatar'] + '" class="member-image"/>'
-            + '<span>' + item['nick_name'] + '</span></li>';
+        if ($('[name="user_id"]').val() == key) {
+            $user_li += '<li user_id="' + key + '" avatar="' + '/img/avatar/robot.jpg' + '" nick_name="' + '机器人笨笨' + '">'
+                + '<img src="' + '/img/avatar/robot.jpg' + '" class="member-image"/>'
+                + '<span>' + '机器人笨笨' + '</span></li>';
+        }
+    });
+    $.each(data, function (key, item) {
+        if ($('[name="user_id"]').val() != key) {
+            $user_li += '<li user_id="' + key + '" avatar="' + item['avatar'] + '" nick_name="' + item['nick_name'] + '">'
+                + '<img src="' + item['avatar'] + '" class="member-image"/>'
+                + '<span>' + item['nick_name'] + '</span></li>';
+        }
     });
     $('[prop="tab_user"]').find('ul').html('').append($user_li);
 }
@@ -79,24 +88,27 @@ function updateUserList(data) {
     var user_id = 0;
     var avatar = 0;
     var nick_name = 0;
+    //其实这是一个一纬数组
     $.each(data, function (key, item) {
         user_id = key;
         avatar = item['avatar'];
         nick_name = item['nick_name'];
     });
-    var has = false;
-    $('[prop="tab_user"]').find('li').each(function () {
-        if ($(this).attr('user_id') == user_id) {
-            $(this).find('img').attr('src', avatar);
-            $(this).find('span').text(nick_name);
-            has = true;
+    if ($('[name="user_id"]').val() != user_id) {
+        var has = false; //之前用户列表中是否存在该用户
+        $('[prop="tab_user"]').find('li').each(function () {
+            if ($(this).attr('user_id') == user_id) {
+                $(this).find('img').attr('src', avatar);
+                $(this).find('span').text(nick_name);
+                has = true;
+            }
+        });
+        if (!has) {
+            var $user_li = '<li user_id="' + user_id + '" avatar="' + avatar + '" nick_name="' + nick_name + '">'
+                + '<img src="' + avatar + '" class="member-image"/>'
+                + '<span>' + nick_name + '</span></li>';
+            $('[prop="tab_user"]').find('ul').append($user_li);
         }
-    });
-    if (!has) {
-        var $user_li = '<li user_id="' + user_id + '" avatar="' + avatar + '" nick_name="' + nick_name + '">'
-            + '<img src="' + avatar + '" class="member-image"/>'
-            + '<span>' + nick_name + '</span></li>';
-        $('[prop="tab_user"]').find('ul').append($user_li);
     }
 }
 
@@ -121,7 +133,7 @@ function getMsg(data) {
     var $li_from_user = $('[prop="tab_user"]').find('li[user_id="' + from_user_id + '"]');
     if ($li_from_user.length) {
         //步骤一 初始化聊天对话框
-        if (from_user_id == $('[name="user_id"]').val()) {
+        if (from_user_id == $('[name="user_id"]').val() && false) {
             Dialog.error('请勿跟自己聊天', false, true);
             return false;
         } else if ($('.chat-bottom').find('li[user_id="' + from_user_id + '"]').length) { //存在底部小tab

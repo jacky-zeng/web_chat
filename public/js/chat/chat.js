@@ -10,7 +10,7 @@ $(function () {
     });
     //打开聊天对话框
     $('.box-content [prop="tab_user"]').on('click', 'ul li', function () {
-        if ($(this).attr('user_id') == $('[name="user_id"]').val()) {
+        if ($(this).attr('user_id') == $('[name="user_id"]').val() && false) {
             Dialog.error('请勿跟自己聊天', false, true);
             return false;
         } else if ($('.chat-bottom').find('li[user_id="' + $(this).attr('user_id') + '"]').length) { //存在底部小tab
