@@ -65,7 +65,10 @@ class TuLingChat
                     $answer = ['哪里跑来的非法用户，我要报警了哈'];
                     break;
                 case 4500:
-                    $answer = ['本机器人的分身术太耗查克拉了，大侠打赏点给我补充查克拉吧'];
+                    $answer = [
+                        '本机器人的分身术太耗查克拉了，大侠打赏点给我补充查克拉吧',
+                        '<img width="120" height="120" src="/img/common/zhifubao.jpg" />'
+                    ];
                     break;
                 default:
                     $answer = [array_get($result, 'results.0.values.text') ?: '有点无敌'];
