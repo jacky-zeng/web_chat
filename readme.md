@@ -18,7 +18,7 @@ Laravel5.6 + Swoole
 # 项目截图
 
 > 登录页面
-![点击查看项目截图](http://github.com/jacky-zeng/web_chat/raw/master/public/introduction/login.jpg)
+![点击查看项目截图](https://github.com/jacky-zeng/web_chat/raw/master/public/introduction/login.jpg)
 
 > 聊天页面
-![点击查看项目截图](http://github.com/jacky-zeng/web_chat/raw/master/public/introduction/chat.jpg)
+![点击查看项目截图](https://github.com/jacky-zeng/web_chat/raw/master/public/introduction/chat.jpg)
