@@ -238,7 +238,7 @@ class WebSocketForChat extends Command
                     $send       = [
                         'from_user_id' => $data['data']['from_user_id'],
                         'to_user_id'   => $data['data']['to_user_id'],
-                        'message'      => $data['data']['message']
+                        'message'      => '<xmp>'.$data['data']['message'].'</xmp>'
                     ];
                     $to_user_id = $data['data']['to_user_id'];
                     $to_user    = Redis::hGet(CacheKey::USER_IDS_KEY, $to_user_id);
