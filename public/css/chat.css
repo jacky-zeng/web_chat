@@ -202,6 +202,12 @@
     overflow-y: auto;
 }
 
+.chat-dialog .main-dialog .dialog-content xmp{
+    display: inline;
+    white-space: inherit;
+    margin: auto;
+}
+
 .chat-dialog .main-dialog .dialog-content ul {
     list-style: none;
     margin: 0;
