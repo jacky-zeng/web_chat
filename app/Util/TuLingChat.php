@@ -101,7 +101,7 @@ class TuLingChat
             ];
             return $answer;
         }
-        if($$rand == 8) {
+        if($rand == 8) {
             $answer = [
                 '您好！本代码的源码地址在：<a target="_blank" href="https://github.com/jacky-zeng/web_chat">https://github.com/jacky-zeng/web_chat</a>,支持我的或者觉得对你有帮助，请在我的github上留下你的小星星，如果你想土豪一把的话，可以给我发支付宝红包^_^',
                 '<img width="120" height="120" src="/img/common/zhifubao.jpg" />',
