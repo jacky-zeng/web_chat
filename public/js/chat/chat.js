@@ -165,7 +165,8 @@ function sendMessage(to_user_id) {
     }
     //填充聊天模板
     var $dialog_chat_mine_template = $('[prop="dialog-chat-mine-template"]').clone().removeAttr('prop').removeClass('hide');
-    $dialog_chat_mine_template.find('[prop="mine_time"]').text('2018-10-11 11:45:08');
+    var date = new Date(+new Date() + 8 * 3600 * 1000).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '');
+    $dialog_chat_mine_template.find('[prop="mine_time"]').text(date);
     $dialog_chat_mine_template.find('[prop="mine_nick_name"]').text($('[name="nick_name"]').val());
     $dialog_chat_mine_template.find('[prop="mine_avatar"]').attr('src', $('[name="avatar"]').val());
     $dialog_chat_mine_template.find('[prop="mine_msg"]').html('<xmp>'+message+'</xmp>');

@@ -226,6 +226,7 @@ class WebSocketForChat extends Command
                         $send       = [
                             'from_user_id' => $data['data']['from_user_id'],
                             'to_user_id'   => $data['data']['to_user_id'],
+                            'date'         => date('Y-m-d H:i:s'),
                             'message'      => $message
                         ];
                         $to_user_id = $data['data']['to_user_id'];
@@ -238,6 +239,7 @@ class WebSocketForChat extends Command
                     $send       = [
                         'from_user_id' => $data['data']['from_user_id'],
                         'to_user_id'   => $data['data']['to_user_id'],
+                        'date'         => date('Y-m-d H:i:s'),
                         'message'      => '<xmp>'.$data['data']['message'].'</xmp>'
                     ];
                     $to_user_id = $data['data']['to_user_id'];

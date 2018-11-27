@@ -128,6 +128,7 @@ function getMsg(data) {
     //console.log('getMsg:' + data);
     data = $.parseJSON(data);
     var from_user_id = data['from_user_id'];
+    var date = data['date'];
     var message = data['message'];
 
     var $li_from_user = $('[prop="tab_user"]').find('li[user_id="' + from_user_id + '"]');
@@ -163,7 +164,7 @@ function getMsg(data) {
         //步骤二 加入聊天信息
         //填充聊天模板
         var $dialog_chat_user_template = $('[prop="dialog-chat-user-template"]').clone().removeAttr('prop').removeClass('hide');
-        $dialog_chat_user_template.find('[prop="user_time"]').text('2018-10-11 11:45:08');
+        $dialog_chat_user_template.find('[prop="user_time"]').text(date);
         $dialog_chat_user_template.find('[prop="user_nick_name"]').text($li_from_user.attr('nick_name'));
         $dialog_chat_user_template.find('[prop="user_avatar"]').attr('src', $li_from_user.attr('avatar'));
         $dialog_chat_user_template.find('[prop="user_msg"]').html(message);
