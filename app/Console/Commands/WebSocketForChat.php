@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\ChatLog;
 use App\Models\User;
 use App\Models\WebSocket;
 use App\Util\CacheKey;
@@ -220,6 +221,13 @@ class WebSocketForChat extends Command
                 if($data['data']['from_user_id'] == $data['data']['to_user_id']){
                     //图灵机器人需要user_id 可能有限制 所以分配100个
                     $tu_ling_user_id = EnDecryption::decrypt($data['data']['from_user_id']) % 100;
+                    //记录聊天记录
+                    $data_save = [
+                        'user_id'    => EnDecryption::decrypt($data['data']['from_user_id']),
+                        'to_user_id' => EnDecryption::decrypt($data['data']['to_user_id']),
+                        'message'    => $data['data']['message']
+                    ];
+                    ChatLog::createModel($data_save);
                     //使用聊天机器人
                     $messages = TuLingChat::ask($tu_ling_user_id, $data['data']['message']);
                     foreach ($messages as $message){
@@ -234,6 +242,14 @@ class WebSocketForChat extends Command
                         $to_fd      = json_decode($to_user, true)['fd'];
                         //$this->info('发送聊天信息:'.$to_fd.'|'.WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
                         $ws_server->push($to_fd, WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
+                        //记录聊天记录
+                        $data_save = [
+                            'user_id'    => EnDecryption::decrypt($data['data']['from_user_id']),
+                            'to_user_id' => EnDecryption::decrypt($data['data']['to_user_id']),
+                            'is_machine' => ChatLog::IS_MACHINE_YES,
+                            'message'    => $message
+                        ];
+                        ChatLog::createModel($data_save);
                     }
                 }else{
                     $send       = [
@@ -247,6 +263,13 @@ class WebSocketForChat extends Command
                     $to_fd      = json_decode($to_user, true)['fd'];
                     //$this->info('发送聊天信息:'.$to_fd.'|'.WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
                     $ws_server->push($to_fd, WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
+                    //记录聊天记录
+                    $data_save = [
+                        'user_id'    => EnDecryption::decrypt($data['data']['from_user_id']),
+                        'to_user_id' => EnDecryption::decrypt($data['data']['to_user_id']),
+                        'message'    => $data['data']['message']
+                    ];
+                    ChatLog::createModel($data_save);
                 }
                 break;
             default:
