@@ -13,7 +13,7 @@ Laravel5.6 + Swoole
 
 >  安装及部署可参考博客地址[Swoole 自学](http://www.zengyanqi.com/2018/11/24/swoole-study-8-laravel-swoole/)
 
->  项目地址[web_chat](http://118.25.106.248/chat)
+>  项目地址[web_chat](http://chat.zengyanqi.com/chat)
 
 # 项目截图
 
