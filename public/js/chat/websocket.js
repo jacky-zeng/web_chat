@@ -2,7 +2,7 @@ var wsUrl;
 var ws;
 
 $(function () {
-    wsUrl = 'ws://118.25.106.248:9600?user_id=' + $('[name="user_id"]').val() + '&token=' + $('[name="token"]').val();
+    wsUrl = 'ws://chat.zengyanqi.com?user_id=' + $('[name="user_id"]').val() + '&token=' + $('[name="token"]').val();
     initWebSocket();
 });
 

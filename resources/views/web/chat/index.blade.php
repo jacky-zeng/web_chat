@@ -15,7 +15,7 @@
 
 <script type="text/javascript">
 
-    var wsUrl = 'ws://118.25.106.248:9600';
+    var wsUrl = 'ws://chat.zengyanqi.com';
 
     var ws;
 
