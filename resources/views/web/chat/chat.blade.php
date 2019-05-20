@@ -91,7 +91,7 @@
             <i title="选择表情" class="icon fa fa-smile-o"></i>
             <i title="发送图片" class="icon fa fa-image"></i>
             <i title="发送文件" class="icon fa fa-folder-o"></i>
-            <i title="聊天记录" class="icon icon-log fa fa-clock-o"><span>聊天记录</span></i>
+            <i title="聊天记录" class="icon icon-log fa fa-clock-o"><span btn="chatLog">聊天记录</span></i>
         </div>
         <div class="dialog-message">
             <textarea></textarea>
@@ -99,6 +99,20 @@
         <div class="dialog-footer">
             <span btn="send">发送</span>
             <span btn="close">关闭</span>
+        </div>
+    </div>
+</div>
+
+<!--聊天记录模板整体-->
+<div class="chat-dialog chat-log-dialog hide" prop="chat-log-dialog-template">
+    <div class="main-dialog">
+        <div class="dialog-head">
+            &nbsp;&nbsp;&nbsp;&nbsp;与<span prop="nick_name">{{--海角诺诺--}}</span>的聊天记录(三天内)
+            <span class="close" btn="close"><span>×</span></span>
+        </div>
+        <div class="dialog-content dialog-log-content">
+            <ul>
+            </ul>
         </div>
     </div>
 </div>

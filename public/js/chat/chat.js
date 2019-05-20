@@ -147,11 +147,99 @@ function initChatDialog($chat_dialog_template) {
     $chat_dialog_template.on('click', '[btn="send"]', function () {
         sendMessage($(this).parents('.chat-dialog').attr('user_id'));
     });
+    //聊天记录
+    $chat_dialog_template.on('click', '[btn="chatLog"]', function () {
+        var $this = $(this);
+        setTimeout(function () {
+            showChatLog($this);
+        }, 100);
+    });
     //关闭聊天对话框面板
     $chat_dialog_template.on('click', '[btn="close"]', function () {
         var user_id = $(this).parents('.chat-dialog').attr('user_id');
         $('.chat-dialog[user_id="' + user_id + '"]').addClass('hide');
-        $('.chat-bottom').find('li[user_id="' + user_id + '"]');
+    });
+}
+
+//初始化聊天记录对话框
+function initChatLogDialog($chat_log_dialog_template) {
+    //步骤一：对话框置顶
+    $('.chat-dialog').css('z-index', '1'); //其他对话框置底
+    $chat_log_dialog_template.css('z-index', '999');
+    /*聊天对话框变可拖动*/
+    $chat_log_dialog_template.find('.main-dialog').css('position', 'absolute'); //变absolute后 才可拖动
+    var dialogHead = $chat_log_dialog_template.find('.dialog-head')[0];
+    var dialogBox = $chat_log_dialog_template[0];
+    dialogHead.onmousedown = function (ev) {
+        //可拖动
+        var oevent = ev || event;
+        var distanceX = oevent.clientX - dialogBox.offsetLeft;
+        var distanceY = oevent.clientY - dialogBox.offsetTop;
+
+        document.onmousemove = function (ev) {
+            var oevent = ev || event;
+            dialogBox.style.left = oevent.clientX - distanceX + 'px';
+            dialogBox.style.top = oevent.clientY - distanceY + 'px';
+        };
+        document.onmouseup = function () {
+            document.onmousemove = null;
+            document.onmouseup = null;
+        };
+    };
+
+    //对话框被点击时置顶
+    $chat_log_dialog_template.on('click', '.main-dialog', function () {
+        $('#chat-box').css('z-index', '1');
+        $('.chat-dialog').css('z-index', '1');
+        $chat_log_dialog_template.css('z-index', '999');
+    });
+    //关闭聊天对话框面板
+    $chat_log_dialog_template.on('click', '[btn="close"]', function () {
+        var user_id = $(this).parents('.chat-log-dialog').attr('user_id');
+        $('.chat-log-dialog[user_id="' + user_id + '"]').remove();
+    });
+    //获取聊天记录
+
+    $.ajax({
+        type: "get",
+        url: "/chat_log",
+        data: 'user_id=' + $chat_log_dialog_template.attr('user_id'),
+        dataType: "json",
+        success: function (e) {
+            if(e.code == 200) {
+                var user_id = $('[name="user_id"]').val();
+                console.log(e);
+                for(var i = 0; i< e.data.length; i++) {
+                    var to_user_id = e.data[i].user_id;
+                    var message = e.data[i].message;
+                    var is_machine = e.data[i].is_machine;
+                    var created_at = e.data[i].created_at;
+
+                    if(is_machine || (user_id != to_user_id)) {
+                        var $tab_user_li = $('[prop="tab_user"]').find('li[user_id="' + to_user_id + '"]');
+                        //填充聊天模板
+                        var $dialog_chat_user_template = $('[prop="dialog-chat-user-template"]').clone().removeAttr('prop').removeClass('hide');
+                        $dialog_chat_user_template.find('[prop="user_time"]').text(created_at);
+                        $dialog_chat_user_template.find('[prop="user_nick_name"]').text($tab_user_li.attr('nick_name'));
+                        $dialog_chat_user_template.find('[prop="user_avatar"]').attr('src', $tab_user_li.attr('avatar'));
+                        $dialog_chat_user_template.find('[prop="user_msg"]').html(message);
+                        $chat_log_dialog_template.find('.dialog-log-content').find('ul').append($dialog_chat_user_template);
+                    } else {
+                        //填充聊天模板
+                        var $dialog_chat_mine_template = $('[prop="dialog-chat-mine-template"]').clone().removeAttr('prop').removeClass('hide');
+                        $dialog_chat_mine_template.find('[prop="mine_time"]').text(created_at);
+                        $dialog_chat_mine_template.find('[prop="mine_nick_name"]').text($('[name="nick_name"]').val());
+                        $dialog_chat_mine_template.find('[prop="mine_avatar"]').attr('src', $('[name="avatar"]').val());
+                        $dialog_chat_mine_template.find('[prop="mine_msg"]').html(message);
+                        $chat_log_dialog_template.find('.dialog-log-content').find('ul').append($dialog_chat_mine_template);
+                    }
+                }
+                var $dialog_log_content = $chat_log_dialog_template.find('.dialog-log-content');
+                $dialog_log_content.scrollTop($dialog_log_content[0].scrollHeight);
+            } else {
+                Dialog.error(e.message, false, true);
+            }
+        }
     });
 }
 
@@ -178,4 +266,19 @@ function sendMessage(to_user_id) {
     var data = {'from_user_id': $('[name="user_id"]').val(), 'to_user_id': to_user_id, 'message': message};
     var ws_message = JSON.stringify(data);
     ws.send(ws_message); //发送消息
+}
+
+//聊天记录
+function showChatLog($obj) {
+    var $chat_dialog = $obj.parents('.chat-dialog');
+    if ($('.chat-log-dialog[user_id="' + $chat_dialog.attr('user_id') + '"]').length) {
+        $('.chat-dialog').css('z-index', '1'); //其他对话框置底
+        $('.chat-log-dialog[user_id="' + $chat_dialog.attr('user_id') + '"]').css('z-index', '999').removeClass('hide');
+    } else {
+        var $chat_log_dialog_template = $('[prop="chat-log-dialog-template"]').clone().removeAttr('prop').removeClass('hide');
+        $chat_log_dialog_template.attr('user_id', $chat_dialog.attr('user_id'));
+        $chat_log_dialog_template.find('[prop="nick_name"]').text($chat_dialog.find('[prop="nick_name"]').text());
+        $('body').append($chat_log_dialog_template);
+        initChatLogDialog($chat_log_dialog_template);
+    }
 }

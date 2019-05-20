@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Repositories\ChatRepository;
 use App\Util\CacheKey;
+use App\Util\EnDecryption;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Redis;
@@ -29,5 +31,15 @@ class ChatController extends Controller
         return view('web.chat.chat', [
             'token' => encrypt($token)
         ]);
+    }
+
+    //聊天记录
+    public function chatLog(Request $request, ChatRepository $chatRepository)
+    {
+        $to_user_id = EnDecryption::decrypt($request->get('user_id'));
+
+        $chat_logs = $chatRepository->chatLog($to_user_id);
+
+        return $this->successResponse('获取成功', $chat_logs);
     }
 }

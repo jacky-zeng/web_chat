@@ -35,4 +35,5 @@ Route::group([
 ], function () {
     Route::get('index', 'ChatController@index')->name('web_chat_index');
     Route::get('chat', 'ChatController@chat')->name('web_chat_chat');
+    Route::get('chat_log', 'ChatController@chatLog')->name('web_chat_chat_log');
 });
