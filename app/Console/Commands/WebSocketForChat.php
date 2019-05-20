@@ -99,15 +99,23 @@ class WebSocketForChat extends Command
     private function reload()
     {
         $this->info("========begin to reload web socket==========");
-        //重启进程
-        $cmd_get_pid = 'pidof '.self::PROCESS_NAME;
-        $pid         = shell_exec($cmd_get_pid);
-        if ($pid) {
-            $cmd_reload = "kill -USR1 $pid";
-            shell_exec($cmd_reload);
-            $this->info("========reload web socket success==========");
+
+        $server_info = php_uname();
+        if(strpos($server_info, 'Linux') === 0) {
+            //重启进程
+            $cmd_get_pid = 'pidof '.self::PROCESS_NAME;
+            $pid         = shell_exec($cmd_get_pid);
+            if ($pid) {
+                $cmd_reload = "kill -USR1 $pid";
+                shell_exec($cmd_reload);
+                $this->info("========reload web socket success==========");
+            } else {
+                $this->info("error：web socket is not started");
+            }
+        } elseif (strpos($server_info, 'Darwin') === 0) {
+            $this->info("ERROR:不支持该系统");
         } else {
-            $this->info("error：web socket is not started");
+            $this->info("ERROR:不支持该系统");
         }
     }
 
@@ -115,25 +123,51 @@ class WebSocketForChat extends Command
     private function stop()
     {
         $this->info("========begin to stop web socket==========");
-        //关闭心跳
-        if ($this->heart_beat_timer) {
-            swoole_timer_clear($this->heart_beat_timer);
+
+        $server_info = php_uname();
+        if(strpos($server_info, 'Linux') === 0) {
+            //关闭心跳
+            if ($this->heart_beat_timer) {
+                swoole_timer_clear($this->heart_beat_timer);
+            }
+            $cmd_stop = "ps -ef|grep swoole:chat|grep -v grep|cut -c 9-15|xargs kill -9";
+            $this->info("========just kill all of the websocket for chat process==========");
+            shell_exec($cmd_stop);
+            $this->info("========start web socket success==========");
+        } elseif (strpos($server_info, 'Darwin') === 0) {
+            //关闭心跳
+            if ($this->heart_beat_timer) {
+                swoole_timer_clear($this->heart_beat_timer);
+            }
+            $cmd_stop = "ps -ef|grep swoole:chat|grep -v grep|cut -c 7-11|xargs kill -9";
+            $this->info("========just kill all of the websocket for chat process==========");
+            shell_exec($cmd_stop);
+        } else {
+            $this->info("ERROR:不支持该系统");
         }
-        $cmd_stop = "ps -ef|grep swoole:chat|grep -v grep|cut -c 9-15|xargs kill -9";
-        $this->info("========just kill all of the websocket for chat process==========");
-        shell_exec($cmd_stop);
     }
 
     //启动在主进程的主线程回调
     private function onStart($ws_server)
     {
-        //设置进程名
-        swoole_set_process_name(self::PROCESS_NAME);
-        //每2秒进行一次心跳检测，看看是不是挂了
-        $this->heart_beat_timer = swoole_timer_tick(2000, function () {
-            $this->heartBeat();
-        });
-        $this->info("========start web socket success==========");
+        $server_info = php_uname();
+        if(strpos($server_info, 'Linux') === 0) {
+            //设置进程名
+            swoole_set_process_name(self::PROCESS_NAME);
+            //每2秒进行一次心跳检测，看看是不是挂了
+            $this->heart_beat_timer = swoole_timer_tick(2000, function () {
+                $this->heartBeat();
+            });
+            $this->info("========start web socket success==========");
+        } elseif (strpos($server_info, 'Darwin') === 0) {
+            //每2秒进行一次心跳检测，看看是不是挂了
+            $this->heart_beat_timer = swoole_timer_tick(2000, function () {
+                $this->heartBeat();
+            });
+            $this->info("========start web socket success==========");
+        } else {
+            $this->info("ERROR:不支持该系统");
+        }
     }
 
     //监听webSocket的连接事件
@@ -314,17 +348,35 @@ class WebSocketForChat extends Command
     //心跳检测
     private function heartBeat()
     {
-        $cmd = "netstat -anp 2>/dev/null | grep ".self::PORT." |grep LISTEN | wc -l";
+        $server_info = php_uname();
+        if(strpos($server_info, 'Linux') === 0) {
+            $cmd = "netstat -anp 2>/dev/null | grep ".self::PORT." |grep LISTEN | wc -l";
 
-        $result = intval(shell_exec($cmd));
-        if (! $result) {
-            $this->info('is stopped!'.date('Y-m-d H:i:s'));
-            swoole_async_writefile('heartBeat.log', 'swoole:chat is stopped! '.date('Y-m-d H:i:s'), function () {
-                echo 'write ok';
-            });
-            //todo 发送邮件或短信通知
+            $result = intval(shell_exec($cmd));
+            if (! $result) {
+                $this->info('is stopped!'.date('Y-m-d H:i:s'));
+                swoole_async_writefile('heartBeat.log', 'swoole:chat is stopped! '.date('Y-m-d H:i:s'), function () {
+                    echo 'write ok';
+                });
+                //todo 发送邮件或短信通知
+            } else {
+                //$this->info('is Running'.date('Y-m-d H:i:s'));
+            }
+        } elseif (strpos($server_info, 'Darwin') === 0) {
+            $cmd = "lsof -nP -i:".self::PORT." | grep ".self::PORT." |grep LISTEN | wc -l";
+
+            $result = intval(shell_exec($cmd));
+            if (! $result) {
+                $this->info('is stopped!'.date('Y-m-d H:i:s'));
+                swoole_async_writefile('heartBeat.log', 'swoole:chat is stopped! '.date('Y-m-d H:i:s'), function () {
+                    echo 'write ok';
+                });
+                //todo 发送邮件或短信通知
+            } else {
+                //$this->info('is Running'.date('Y-m-d H:i:s'));
+            }
         } else {
-            //$this->info('is Running'.date('Y-m-d H:i:s'));
+            $this->info("ERROR:不支持该系统");
         }
     }
 }

@@ -2,7 +2,7 @@ var wsUrl;
 var ws;
 
 $(function () {
-    wsUrl = 'ws://chat.zengyanqi.com:9600?user_id=' + $('[name="user_id"]').val() + '&token=' + $('[name="token"]').val();
+    wsUrl = 'ws://'+$('[name="swoole_http_host"]').val()+'?user_id=' + $('[name="user_id"]').val() + '&token=' + $('[name="token"]').val();
     initWebSocket();
 });
 

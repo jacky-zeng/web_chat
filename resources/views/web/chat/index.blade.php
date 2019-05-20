@@ -15,7 +15,7 @@
 
 <script type="text/javascript">
 
-    var wsUrl = 'ws://chat.zengyanqi.com:9600';
+    var wsUrl = 'ws://'+'{{ env('SWOOLE_HTTP_HOST', 'chat.zengyanqi.com:9600') }}';
 
     var ws;
 
