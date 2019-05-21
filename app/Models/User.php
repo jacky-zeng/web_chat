@@ -8,14 +8,6 @@ class User extends \Illuminate\Foundation\Auth\User
 
     //定义头像 用于注册时随机取
     private static $avatars = [
-        '/img/avatar/apple.jpg',
-        '/img/avatar/en.png',
-        '/img/avatar/haijiaoluoluo.jpg',
-        '/img/avatar/jeff.gif',
-        '/img/avatar/qianxing.jpg',
-        '/img/avatar/qingsong.jpg',
-        '/img/avatar/redsun.gif',
-        '/img/avatar/wangnima.jpg',
         '/img/avatar/a.jpg',
         '/img/avatar/b.jpg',
         '/img/avatar/c.jpg',
@@ -30,12 +22,24 @@ class User extends \Illuminate\Foundation\Auth\User
         '/img/avatar/l.jpg',
         '/img/avatar/m.jpg',
         '/img/avatar/n.jpg',
+        '/img/avatar/o.jpg',
+        '/img/avatar/p.jpg',
+        '/img/avatar/q.jpg',
+        '/img/avatar/r.jpg',
+        '/img/avatar/s.jpg',
+        '/img/avatar/t.jpg',
+        '/img/avatar/u.jpg',
+        '/img/avatar/v.jpg',
+        '/img/avatar/w.jpg',
+        '/img/avatar/x.jpg',
+        '/img/avatar/y.jpg',
+        '/img/avatar/z.jpg',
     ];
 
     public static function createModel($params)
     {
         //随机取昵称和头像
-        $index = mt_rand(0, 21);
+        $index = mt_rand(0, 25);
 
         $data_save = [
             'name'      => $params['name'],
