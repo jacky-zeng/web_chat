@@ -21,7 +21,7 @@ Laravel5.6 + Swoole
 ![点击查看项目截图](https://github.com/jacky-zeng/web_chat/raw/master/public/introduction/login.jpg)
 
 > 聊天页面
-![点击查看项目截图](https://github.com/jacky-zeng/web_chat/raw/master/public/introduction/chat.jpg)
+![点击查看项目截图](https://github.com/jacky-zeng/web_chat/raw/master/public/introduction/chat_info.jpg)
 
 # 目标功能
 - [x] 登录注册&游客登录&退出登录 -- 完成
