@@ -100,8 +100,12 @@ class AuthRepository
     private function getSingleToken($user)
     {
         Auth::guard('user-auth')->login($user);
+        $user_id = Auth::guard('user-auth')->user()->id;
+        //记录登录时间
+        User::find($user_id)->update([
+            'login_time' => date('Y-m-d H:i:s')
+        ]);
         //单点登录数据存入  存入redis及返回cookie到前端 （单点登录过滤见app\Http\Middleware\AdminAuthenticate.php）
-        $user_id      = Auth::guard('user-auth')->user()->id;
         $cache_key    = sprintf(CacheKey::USER_SINGLE_LOGIN_KEY, $user_id);
         $time         = time();
         $single_token = md5($user_id.$time);

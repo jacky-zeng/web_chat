@@ -8,6 +8,7 @@ use App\Models\WebSocket;
 use App\Util\CacheKey;
 use App\Util\TuLingChat;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Auth;
 use Redis;
 use App\Util\EnDecryption;
 
@@ -201,16 +202,7 @@ class WebSocketForChat extends Command
             ];
             Redis::hSet(CacheKey::USER_IDS_KEY, $en_user_id, json_encode($user_data));
             //2.获取用户列表
-            $user_list      = [];
-            $redis_en_user_ids = Redis::hGetAll(CacheKey::USER_IDS_KEY);
-            foreach ($redis_en_user_ids as $redis_en_user_id => $user) {
-                $user = json_decode($user, true);
-                foreach ($ws_server->connections as $connect_fd) {
-                    if ($user['fd'] == $connect_fd) {
-                        $user_list[$redis_en_user_id] = $user;
-                    }
-                }
-            }
+            $user_list = $this->getUserList($ws_server);
             $ws_server->push($request->fd, WebSocket::TYPE_USER_LIST.WebSocket::SPLIT_WORD.json_encode($user_list));
             //3.task广播：用户列表加入一个用户
             foreach ($ws_server->connections as $connect_fd) {
@@ -223,6 +215,8 @@ class WebSocketForChat extends Command
                 ];
                 $ws_server->task($task_data);
             }
+            //4.离线信息发送给当前登录用户
+            $this->sendOfflineMsg($ws_server, $user_id);
         }
     }
 
@@ -273,7 +267,7 @@ class WebSocketForChat extends Command
                         ];
                         $to_user_id = $data['data']['to_user_id'];
                         $to_user    = Redis::hGet(CacheKey::USER_IDS_KEY, $to_user_id);
-                        $to_fd      = json_decode($to_user, true)['fd'];
+                        $to_fd      = array_get(json_decode($to_user, true), 'fd');
                         //$this->info('发送聊天信息:'.$to_fd.'|'.WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
                         $ws_server->push($to_fd, WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
                         //记录聊天记录
@@ -294,16 +288,42 @@ class WebSocketForChat extends Command
                     ];
                     $to_user_id = $data['data']['to_user_id'];
                     $to_user    = Redis::hGet(CacheKey::USER_IDS_KEY, $to_user_id);
-                    $to_fd      = json_decode($to_user, true)['fd'];
+                    $to_fd      = array_get(json_decode($to_user, true), 'fd');
                     //$this->info('发送聊天信息:'.$to_fd.'|'.WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
-                    $ws_server->push($to_fd, WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
+                    if($to_fd) { //用户在线 才发送
+                        try {
+                            $ws_server->push($to_fd, WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
+                        } catch (\Exception $ex) {
+                            Redis::hDel(CacheKey::USER_IDS_KEY, $to_user_id);
+                            $to_fd = false;
+                        }
+                    }
                     //记录聊天记录
                     $data_save = [
                         'user_id'    => EnDecryption::decrypt($data['data']['from_user_id']),
                         'to_user_id' => EnDecryption::decrypt($data['data']['to_user_id']),
-                        'message'    => $data['data']['message']
+                        'message'    => $data['data']['message'],
+                        'has_send'   => $to_fd ? ChatLog::HAS_SEND_YES : ChatLog::HAS_SEND_NO
                     ];
                     ChatLog::createModel($data_save);
+                }
+                break;
+            case WebSocket::TYPE_OFFLINE_MSG:
+                $send       = [
+                    'from_user_id' => $data['data']['from_user_id'],
+                    'to_user_id'   => $data['data']['to_user_id'],
+                    'date'         => $data['data']['date'],
+                    'message'      => '<xmp>'.$data['data']['message'].'</xmp>'
+                ];
+                $to_user_id = $data['data']['to_user_id'];
+                $to_user    = Redis::hGet(CacheKey::USER_IDS_KEY, $to_user_id);
+                $to_fd      = array_get(json_decode($to_user, true), 'fd');
+                //$this->info('发送聊天信息:'.$to_fd.'|'.WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
+                if($to_fd) { //用户在线 才发送
+                    $ws_server->push($to_fd, WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
+                    ChatLog::where('id', $data['data']['id'])->update([
+                        'has_send' => ChatLog::HAS_SEND_YES
+                    ]);
                 }
                 break;
             default:
@@ -377,6 +397,76 @@ class WebSocketForChat extends Command
             }
         } else {
             $this->info("ERROR:不支持该系统");
+        }
+    }
+
+    /**
+     * 获取服务器用户列表
+     * @param $ws_server
+     * @return array
+     */
+    private function getUserList($ws_server)
+    {
+        $user_list = [];
+        //获取在线用户
+        $redis_en_user_ids = Redis::hGetAll(CacheKey::USER_IDS_KEY);
+        foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
+            $redis_user = json_decode($redis_user, true);
+            foreach ($ws_server->connections as $connect_fd) {
+                if ($redis_user['fd'] == $connect_fd) {
+                    $redis_user['is_online'] = 1;
+                    $user_list[$redis_en_user_id] = $redis_user;
+                }
+            }
+        }
+        //获取三天内的活跃用户
+        $format_users = [];
+        $users = User::where('login_time', '>=', date('Y-m-d H:i:s', strtotime('-3 day')))
+            ->orWhere('logout_time', '>=', date('Y-m-d H:i:s', strtotime('-3 day')))
+            ->get(['id', 'nick_name', 'avatar']);
+        foreach ($users as $user) {
+            $format_users[EnDecryption::encrypt($user['id'])] = [
+                'nick_name' => $user['nick_name'],
+                'avatar'    => $user['avatar'],
+                'is_online' => 0                    //不在线
+            ];
+        }
+        //合并
+        $rs_user_list = array_merge($format_users, $user_list); //$user_list必须放在后面，出现重复key时，$user_list会覆盖掉$format_users中的数据
+
+        return $rs_user_list;
+    }
+
+    /**
+     * 发送离线消息
+     * @param $ws_server
+     * @param $user_id
+     */
+    private function sendOfflineMsg($ws_server, $user_id)
+    {
+        $chat_logs = ChatLog::where([
+            'to_user_id' => $user_id,
+            'has_send'   => ChatLog::HAS_SEND_NO,
+            'is_machine' => ChatLog::IS_MACHINE_NO
+        ])
+            ->where('user_id', '<>', $user_id)
+            ->where('created_at', '>=', date('Y-m-d H:i:s', strtotime('-1 day')))  //1天前
+            ->orderby('id', 'asc')
+            ->get(['id', 'user_id', 'to_user_id', 'message', 'created_at'])
+            ->toArray();
+
+        foreach ($chat_logs as $chat_log) {
+            $task_data = [
+                'type' => WebSocket::TYPE_OFFLINE_MSG,
+                'data' => [
+                    'id'           => $chat_log['id'],
+                    'from_user_id' => EnDecryption::encrypt($chat_log['user_id']),
+                    'to_user_id'   => EnDecryption::encrypt($user_id),
+                    'message'      => $chat_log['message'],
+                    'date'         => $chat_log['created_at'],
+                ]
+            ];
+            $ws_server->task($task_data);
         }
     }
 }

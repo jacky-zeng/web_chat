@@ -64,18 +64,27 @@ function initUserList(data) {
     //console.log('initUserList:' + data);
     data = $.parseJSON(data);
     var $user_li = '';
-    $.each(data, function (key, item) {
+    $.each(data, function (key, item) { //机器人
         if ($('[name="user_id"]').val() == key) {
             $user_li += '<li user_id="' + key + '" avatar="' + '/img/avatar/robot.jpg' + '" nick_name="' + '机器人笨笨' + '">'
                 + '<img src="' + '/img/avatar/robot.jpg' + '" class="member-image"/>'
-                + '<span>' + '机器人笨笨' + '</span></li>';
+                + '<span>' + '机器人笨笨' + '</span><span class="span-online"><i class="fa fa-circle"></i>&nbsp;在线</span></li>';
         }
     });
     $.each(data, function (key, item) {
-        if ($('[name="user_id"]').val() != key) {
+        if ($('[name="user_id"]').val() != key && item['is_online']) {  //在线用户
+            var $online_status_span = '<span class="span-online"><i class="fa fa-circle"></i>&nbsp;在线</span></li>';
             $user_li += '<li user_id="' + key + '" avatar="' + item['avatar'] + '" nick_name="' + item['nick_name'] + '">'
-                + '<img src="' + item['avatar'] + '" class="member-image"/>'
-                + '<span>' + item['nick_name'] + '</span></li>';
+                + '<img src="' + item['avatar'] + '" class="member-image '+(item['is_online']?'':'member-not-online')+'"/>'
+                + '<span>' + item['nick_name'] + '</span>' + $online_status_span + '</li>';
+        }
+    });
+    $.each(data, function (key, item) {
+        if ($('[name="user_id"]').val() != key && !item['is_online']) { //离线用户
+            var $online_status_span = '<span class="span-not-online"><i class="fa fa-circle"></i>&nbsp;离线</span></li>';
+            $user_li += '<li user_id="' + key + '" avatar="' + item['avatar'] + '" nick_name="' + item['nick_name'] + '">'
+                + '<img src="' + item['avatar'] + '" class="member-image '+(item['is_online']?'':'member-not-online')+'"/>'
+                + '<span>' + item['nick_name'] + '</span>' + $online_status_span + '</li>';
         }
     });
     $('[prop="tab_user"]').find('ul').html('').append($user_li);
@@ -95,19 +104,47 @@ function updateUserList(data) {
         nick_name = item['nick_name'];
     });
     if ($('[name="user_id"]').val() != user_id) {
-        var has = false; //之前用户列表中是否存在该用户
+        var $this_li = null;
+        var has = false;
         $('[prop="tab_user"]').find('li').each(function () {
             if ($(this).attr('user_id') == user_id) {
                 $(this).find('img').attr('src', avatar);
                 $(this).find('span').text(nick_name);
+                $this_li = $(this);
                 has = true;
             }
         });
-        if (!has) {
+        if (!has) { //之前用户列表中不存在该用户
+            var $online_status_span = '<span class="span-online"><i class="fa fa-circle"></i>&nbsp;在线</span></li>';
             var $user_li = '<li user_id="' + user_id + '" avatar="' + avatar + '" nick_name="' + nick_name + '">'
                 + '<img src="' + avatar + '" class="member-image"/>'
-                + '<span>' + nick_name + '</span></li>';
-            $('[prop="tab_user"]').find('ul').append($user_li);
+                + '<span>' + nick_name + '</span>' + $online_status_span + '</li>';
+
+            var $last_not_online_li = null;
+            $('[prop="tab_user"]').find('li').each(function () {
+                if($(this).find('.member-not-online').length) {
+                    $last_not_online_li = $(this);
+                }
+            });
+            if($last_not_online_li) {
+                $last_not_online_li.before($user_li);
+            } else {
+                $('[prop="tab_user"]').find('ul').append($user_li);
+            }
+        } else { //上线用户放离线用户前面
+            $this_li.find('img').removeClass('member-not-online');
+            $this_li.find('.span-not-online').html('<i class="fa fa-circle"></i>&nbsp;在线').removeClass('span-not-online').addClass('span-online');
+            var $last_not_online_li = null;
+            $('[prop="tab_user"]').find('li').each(function () {
+                if($(this).find('.member-not-online').length) {
+                    $last_not_online_li = $(this);
+                    return false;
+                }
+            });
+            if($last_not_online_li) {
+                $last_not_online_li.before($this_li[0].outerHTML);
+                $this_li.remove();
+            }
         }
     }
 }
@@ -120,7 +157,12 @@ function delUserList(data) {
     $.each(data, function (key, item) {
         user_id = item;
     });
-    $('[prop="tab_user"]').find('[user_id="' + user_id + '"]').remove();
+    var $tab_user_li = $('[prop="tab_user"]').find('[user_id="' + user_id + '"]');
+    $tab_user_li.find('img').addClass('member-not-online');
+    $tab_user_li.find('.span-online').addClass('span-not-online').removeClass('span-online');
+    //离线用户放到列表最后面
+    $('[prop="tab_user"]').find('ul').append($tab_user_li[0].outerHTML);
+    $tab_user_li.remove();
 }
 
 //用户收到聊天信息

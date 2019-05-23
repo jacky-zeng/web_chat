@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Repositories\AuthRepository;
 use App\Util\GenerateNickName;
 use Illuminate\Http\Request;
@@ -108,6 +109,10 @@ class AuthController extends Controller
     //退出登录
     public function logout()
     {
+        //记录登录时间
+        User::find(\Illuminate\Support\Facades\Auth::guard('user-auth')->user()->id)->update([
+            'logout_time' => date('Y-m-d H:i:s')
+        ]);
         \Illuminate\Support\Facades\Auth::guard('user-auth')->logout();
         session()->flush();
 

@@ -114,6 +114,21 @@
     max-width: 160px;
 }
 
+.chat-box .main-box .box-content li .span-online, .chat-box .main-box .box-content li .span-not-online {
+    margin-left: -12px;
+    display: block;
+    font-weight: lighter;
+    -webkit-transform: scale(0.8);
+}
+
+.chat-box .main-box .box-content li .span-online i{
+    color: green;
+}
+
+.chat-box .main-box .box-content li .span-not-online i{
+    color: gray;
+}
+
 .chat-box .main-box .box-content li:hover {
     background-color: #f6f6f6;
 }
@@ -125,6 +140,16 @@
     width: 36px;
     height: 36px;
     border-radius: 100%;
+}
+
+/*离线用户*/
+.chat-box .main-box .box-content .member-not-online {
+    -webkit-filter: grayscale(100%);
+    -moz-filter: grayscale(100%);
+    -ms-filter: grayscale(100%);
+    -o-filter: grayscale(100%);
+    filter: grayscale(100%);
+    filter: gray;
 }
 
 /*底部*/

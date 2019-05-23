@@ -9,6 +9,7 @@ class WebSocket
     const TYPE_MSG         = 2;
     const TYPE_USER_LOGIN  = 3;
     const TYPE_USER_LOGOUT = 4;
+    const TYPE_OFFLINE_MSG = 5;
 
     //分割符
     const SPLIT_WORD = '{-$☋$-}';
