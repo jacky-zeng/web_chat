@@ -168,6 +168,37 @@
     margin-left: 15px;
 }
 
+/*聊天表情*/
+.chat-emoticon {
+    position: relative;
+    line-height: 22px;
+    min-width: 12px;
+    padding: 8px 15px;
+    font-size: 12px;
+    _float: left;
+    border-radius: 2px;
+    color: #fff;
+}
+
+.chat-emoticon ul {
+    position: relative;
+    width: 372px;
+    padding: 10px;
+}
+
+.chat-emoticon ul li {
+    cursor: pointer;
+    float: left;
+    border: 1px solid #e8e8e8;
+    height: 22px;
+    width: 26px;
+    overflow: hidden;
+    margin: -1px 0 0 -1px;
+    padding: 4px 2px;
+    text-align: center;
+    background-color: white;
+}
+
 /*聊天对话框整体*/
 .chat-dialog {
     position: fixed;
@@ -368,22 +399,6 @@
 .chat-dialog .main-dialog .dialog-message {
     margin-left: 10px;
     overflow-y: auto;
-}
-
-.chat-dialog .main-dialog .dialog-message textarea {
-    display: block;
-    width: 600px;
-    padding: 5px 0 0;
-    height: 68px;
-    line-height: 20px;
-    border: none;
-    overflow: auto;
-    resize: none;
-    background: 0 0;
-}
-
-.chat-dialog .main-dialog .dialog-message textarea:focus {
-    outline: none;
 }
 
 /*聊天底部*/

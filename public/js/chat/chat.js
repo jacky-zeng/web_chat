@@ -67,6 +67,16 @@ $(function () {
             window.top.location.href = '/logout'
         });
     });
+
+    //锁屏
+    $('[btn="lock_screen"]').click(function () {
+        Dialog.error('功能开发中');
+    });
+
+    //设置
+    $('[btn="setting"]').click(function () {
+        Dialog.error('功能开发中');
+    });
 });
 
 //初始化
@@ -106,6 +116,9 @@ function initChatDialog($chat_dialog_template) {
     //步骤一：对话框置顶
     $('.chat-dialog').css('z-index', '1');
     $chat_dialog_template.css('z-index', '999');
+
+    new RichEditor($chat_dialog_template.find('[prop="message"]')[0]); //html编辑器
+
     /*聊天对话框变可拖动*/
     $chat_dialog_template.find('.main-dialog').css('position', 'absolute'); //变absolute后 才可拖动
     var dialogHead = $chat_dialog_template.find('.dialog-head')[0];
@@ -133,16 +146,37 @@ function initChatDialog($chat_dialog_template) {
         $('.chat-dialog').css('z-index', '1');
         $chat_dialog_template.css('z-index', '999');
     });
-    //发送聊天信息  ctrl+enter 换行  enter发送信息
-    $chat_dialog_template.on('keypress', '.dialog-message textarea', function (event) {
-        if (event.ctrlKey && event.keyCode == 10) {
-            $(this).val($(this).val() + '\n');
-        }
-        else if (event.keyCode == 13) {
-            sendMessage($(this).parents('.chat-dialog').attr('user_id'));
-            return false;
-        }
+
+    //选择表情
+    $chat_dialog_template.on('click', '.dialog-tool .fa-smile-o', function () {
+        //显示所有可选表情
+        $('.chat-emoticon').css({
+            'left' : $chat_dialog_template.position().left - 335,
+            'top' : $chat_dialog_template.position().top - 110,
+            'z-index':'1000'
+        }).removeClass('hide');
+        //选择表情
+        $('.chat-emoticon').find('li').unbind().click(function () {
+            //表情插入文字后方
+            if($chat_dialog_template.find('[prop="message"]').find('iframe').contents().find('body').find('div').length) {
+                $chat_dialog_template.find('[prop="message"]').find('iframe').contents().find('body').find('div').last().append($(this).html());
+            } else {
+                $chat_dialog_template.find('[prop="message"]').find('iframe').contents().find('body').append($(this).html());
+            }
+        });
+        //隐藏表情选择
+        $('body').unbind().click(function (e) {
+            if(!$(e.target).hasClass('fa-smile-o')) {
+                $('.chat-emoticon').addClass('hide');
+                $('body').unbind();
+            }
+        });
     });
+
+    $chat_dialog_template.on('click', '.dialog-tool .fa-image, .dialog-tool .fa-folder-o', function () {
+        Dialog.error('功能开发中');
+    });
+
     //发送按钮 发送信息
     $chat_dialog_template.on('click', '[btn="send"]', function () {
         sendMessage($(this).parents('.chat-dialog').attr('user_id'));
@@ -247,8 +281,12 @@ function initChatLogDialog($chat_log_dialog_template) {
 function sendMessage(to_user_id) {
     //获取聊天信息
     var $current_chat_dialog = $('.chat-dialog[user_id="' + to_user_id + '"]');
-    var message = $current_chat_dialog.find('.dialog-message').find('textarea').val().toString().replace(/\n/g, '<br>');
+    var message = $current_chat_dialog.find('[prop="message"]').find('iframe').contents().find('body').html();
+
     if (message.toString().trim() == '') {
+        return false;
+    } else if(message.toString().length >= 5000) {
+        Dialog.error('聊天内容过长', false, true);
         return false;
     }
     //填充聊天模板
@@ -257,11 +295,11 @@ function sendMessage(to_user_id) {
     $dialog_chat_mine_template.find('[prop="mine_time"]').text(date);
     $dialog_chat_mine_template.find('[prop="mine_nick_name"]').text($('[name="nick_name"]').val());
     $dialog_chat_mine_template.find('[prop="mine_avatar"]').attr('src', $('[name="avatar"]').val());
-    $dialog_chat_mine_template.find('[prop="mine_msg"]').html('<xmp>'+message+'</xmp>');
+    $dialog_chat_mine_template.find('[prop="mine_msg"]').html(message);
     //加入到聊天对话框
     $current_chat_dialog.find('ul').append($dialog_chat_mine_template);
     $current_chat_dialog.find('.dialog-content').scrollTop($current_chat_dialog.find('.dialog-content')[0].scrollHeight);
-    $current_chat_dialog.find('.dialog-message').find('textarea').val(''); //清空打字框
+    $current_chat_dialog.find('[prop="message"]').find('iframe').contents().find('body').html(''); //清空打字框
     //websocket发送聊天信息 （对方user_id拼上聊天的内容）
     var data = {'from_user_id': $('[name="user_id"]').val(), 'to_user_id': to_user_id, 'message': message};
     var ws_message = JSON.stringify(data);

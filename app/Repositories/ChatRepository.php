@@ -41,7 +41,7 @@ class ChatRepository
         foreach ($chat_logs as $key => $chat_log) {
             $chat_logs[$key]['user_id']    = EnDecryption::encrypt($chat_log['user_id']);
             $chat_logs[$key]['to_user_id'] = EnDecryption::encrypt($chat_log['to_user_id']);
-            $chat_logs[$key]['message'] = '<xmp>'.$chat_log['message'].'</xmp>';
+            $chat_logs[$key]['message']    = $chat_log['message'];
         }
 
         return $chat_logs;

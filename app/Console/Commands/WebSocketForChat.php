@@ -247,6 +247,9 @@ class WebSocketForChat extends Command
                 break;
             case WebSocket::TYPE_MSG:
                 if($data['data']['from_user_id'] == $data['data']['to_user_id']){
+                    if(mb_strlen($data['data']['message']) >= 5000) {
+                        break;
+                    }
                     //图灵机器人需要user_id 可能有限制 所以分配100个
                     $tu_ling_user_id = EnDecryption::decrypt($data['data']['from_user_id']) % 100;
                     //记录聊天记录
@@ -256,6 +259,7 @@ class WebSocketForChat extends Command
                         'message'    => $data['data']['message']
                     ];
                     ChatLog::createModel($data_save);
+
                     //使用聊天机器人
                     $messages = TuLingChat::ask($tu_ling_user_id, $data['data']['message']);
                     foreach ($messages as $message){
@@ -284,7 +288,7 @@ class WebSocketForChat extends Command
                         'from_user_id' => $data['data']['from_user_id'],
                         'to_user_id'   => $data['data']['to_user_id'],
                         'date'         => date('Y-m-d H:i:s'),
-                        'message'      => '<xmp>'.$data['data']['message'].'</xmp>'
+                        'message'      => $data['data']['message']
                     ];
                     $to_user_id = $data['data']['to_user_id'];
                     $to_user    = Redis::hGet(CacheKey::USER_IDS_KEY, $to_user_id);
@@ -313,7 +317,7 @@ class WebSocketForChat extends Command
                     'from_user_id' => $data['data']['from_user_id'],
                     'to_user_id'   => $data['data']['to_user_id'],
                     'date'         => $data['data']['date'],
-                    'message'      => '<xmp>'.$data['data']['message'].'</xmp>'
+                    'message'      => $data['data']['message']
                 ];
                 $to_user_id = $data['data']['to_user_id'];
                 $to_user    = Redis::hGet(CacheKey::USER_IDS_KEY, $to_user_id);

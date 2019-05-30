@@ -94,14 +94,14 @@ class TuLingChat
      */
     public static function ask($user_id, $message)
     {
-        $rand = mt_rand(0, 12);
-        if($rand == 5) {
+        $rand = mt_rand(0, 36);
+        if($rand == 6) {
             $answer = [
                 '您好！本代码的源码地址在：<a target="_blank" href="https://github.com/jacky-zeng/web_chat">https://github.com/jacky-zeng/web_chat</a>,支持我的或者觉得对你有帮助，请在我的github上留下你的小星星^_^',
             ];
             return $answer;
         }
-        if($rand == 8) {
+        if($rand == 18) {
             $answer = [
                 '您好！本代码的源码地址在：<a target="_blank" href="https://github.com/jacky-zeng/web_chat">https://github.com/jacky-zeng/web_chat</a>,支持我的或者觉得对你有帮助，请在我的github上留下你的小星星，如果你想土豪一把的话，可以给我发支付宝红包^_^',
                 '<img width="120" height="120" src="/img/common/zhifubao.jpg" />',
@@ -109,6 +109,16 @@ class TuLingChat
             ];
             return $answer;
         }
+
+        $message = trim($message); //清除字符串两边的空格
+        $message = strip_tags($message,""); //利用php自带的函数清除html格式
+        $message = preg_replace("/\t/","",$message); //使用正则表达式替换内容，如：空格，换行，并将替换为空。
+        $message = preg_replace("/\r\n/","",$message);
+        $message = preg_replace("/\r/","",$message);
+        $message = preg_replace("/\n/","",$message);
+        $message = preg_replace("/ /","",$message);
+        $message = preg_replace("/  /","",$message);  //匹配html中的空格
+        $message = trim($message); //返回字符串
 
         if(empty($message)){
             return ['额'];
