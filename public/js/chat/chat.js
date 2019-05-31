@@ -70,7 +70,18 @@ $(function () {
 
     //锁屏
     $('[btn="lock_screen"]').click(function () {
-        Dialog.error('功能开发中');
+        localStorage.setItem('is_locked', '1');
+        $('.lock-screen').removeClass('hide');
+    });
+
+    //解除锁屏
+    $('[btn="unLock"]').unbind().click(function () {
+        if($('[txt="unLock"]').val() == 'admin') {
+            localStorage.setItem('is_locked', '0');
+            $('.lock-screen').addClass('hide');
+        } else {
+            Dialog.error('密码错误', false, true);
+        }
     });
 
     //设置
@@ -81,6 +92,10 @@ $(function () {
 
 //初始化
 function init() {
+    //是否锁屏
+    if(localStorage.getItem('is_locked') == '1') {
+        $('.lock-screen').removeClass('hide');
+    }
     /*底部任务栏小聊天tab*/
     var swiper_tab = new Swiper('.swiper-container-tab', {
         slidesPerView: 'auto'

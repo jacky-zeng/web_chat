@@ -158,11 +158,13 @@ function delUserList(data) {
         user_id = item;
     });
     var $tab_user_li = $('[prop="tab_user"]').find('[user_id="' + user_id + '"]');
-    $tab_user_li.find('img').addClass('member-not-online');
-    $tab_user_li.find('.span-online').addClass('span-not-online').removeClass('span-online');
-    //离线用户放到列表最后面
-    $('[prop="tab_user"]').find('ul').append($tab_user_li[0].outerHTML);
-    $tab_user_li.remove();
+    if($tab_user_li.length) {
+        $tab_user_li.find('img').addClass('member-not-online');
+        $tab_user_li.find('.span-online').addClass('span-not-online').removeClass('span-online');
+        //离线用户放到列表最后面
+        $('[prop="tab_user"]').find('ul').append($tab_user_li[0].outerHTML);
+        $tab_user_li.remove();
+    }
 }
 
 //用户收到聊天信息

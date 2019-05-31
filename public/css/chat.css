@@ -452,3 +452,73 @@
     float: right;
     margin-right: 5px;
 }
+
+/*锁屏样式*/
+.lock-screen {
+    z-index: 1001;
+    /*height: 100%;*/
+    width: 100%;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    position: fixed;
+    background: url('http://www.zengyanqi.com/wp-content/themes/twentyseventeen/assets/images/header.jpg') no-repeat center/cover;
+}
+
+.lock-screen .mask {
+    z-index: 1002;
+    width: 100%;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    position: fixed;
+    background-color: #17131b;
+    opacity: 0.3;
+}
+
+.lock-screen .inner {
+    z-index: 1003;
+    position: absolute;
+    margin: 22% 45%;
+    width: 200px;
+    height: 200px;
+    text-align: center;
+    border: 10px solid #1b1819;
+    border-radius: 200px;
+}
+
+.lock-screen .inner img {
+    border-radius: 100%;
+    width: 75px;
+    height: 75px;
+}
+
+.lock-screen .inner span {
+    display: block;
+    color: white;
+    margin-top: 2px;
+}
+
+.lock-screen .inner .un-lock {
+    z-index: 1003;
+    margin-top: 10px;
+}
+
+.lock-screen .inner .un-lock input{
+    text-align: center;
+    float: left;
+    width: 100px;
+    margin-left: 35px;
+    background-color: #121213;
+    border-color: #121213;
+    border-radius: 5px;
+    color: white;
+}
+
+.lock-screen .inner .un-lock i {
+    cursor: pointer;
+    margin-top: -2px;
+    margin-left: -15px;
+    font-size: 25px;
+}
+

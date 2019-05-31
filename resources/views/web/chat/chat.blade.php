@@ -156,4 +156,18 @@
     </div>
 </li>
 
+<!--锁屏-->
+<div class="lock-screen hide">
+    <div class="mask">
+    </div>
+    <div class="inner">
+        <img src="/img/avatar/a.jpg" />
+        <span>曾彦琪</span>
+        <div class="un-lock">
+            <input txt="unLock" type="text" class="input-sm" placeholder="输入admin解锁" />
+            <i class="fa fa-arrow-circle-right" btn="unLock"></i>
+        </div>
+    </div>
+</div>
+
 </body>

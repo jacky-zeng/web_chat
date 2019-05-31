@@ -168,6 +168,7 @@
 </body>
 <script type="text/javascript">
     $(function () {
+        localStorage.setItem('is_locked', '0');
         //错误提示
         @if (count($errors) > 0)
             @foreach ($errors->all() as $error)
