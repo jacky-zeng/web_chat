@@ -5,6 +5,7 @@
     <script type="text/javascript" src="/js/common.js"></script>
     <script type="text/javascript" src="/js/swiper.min.js"></script>
     <script type="text/javascript" src="/js/rich-editor.js"></script>
+    <script type="text/javascript" src="/js/upload.js"></script>
     <script type="text/javascript" src="/js/chat/chat.js"></script>
     <script type="text/javascript" src="/js/chat/websocket.js"></script>
     <link rel="stylesheet" href="/css/font-awesome.min.css">
@@ -17,6 +18,7 @@
 
 <input type="hidden" name="user_id" value="{{ \App\Util\EnDecryption::encrypt(auth("user-auth")->user()->id) }}">
 <input type="hidden" name="token" value="{{ $token }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 <input type="hidden" name="nick_name" value="{{auth("user-auth")->user()->nick_name}}">
 <input type="hidden" name="avatar" value="{{auth("user-auth")->user()->avatar}}">
 <input type="hidden" name="swoole_http_host" value="{{ env('SWOOLE_HTTP_HOST', 'chat.zengyanqi.com:9600') }}">
@@ -51,7 +53,7 @@
         <div class="box-footer">
             <i btn="logout" style="color: red;" title="退出登录" class="icon fa fa-power-off"></i>
             <i btn="lock_screen" title="锁屏" class="icon fa fa-coffee"></i>
-            <i btn="setting" title="设置" class="icon fa fa-cog"></i>
+            {{--<i btn="setting" title="设置" class="icon fa fa-cog"></i>--}}
         </div>
     </div>
 </div>
@@ -95,7 +97,7 @@
         <div class="dialog-tool">
             <i title="选择表情" class="icon fa fa-smile-o"></i>
             <i title="发送图片" class="icon fa fa-image"></i>
-            <i title="发送文件" class="icon fa fa-folder-o"></i>
+            {{--<i title="发送文件" class="icon fa fa-folder-o"></i>--}}
             <i title="聊天记录" class="icon icon-log fa fa-clock-o"><span btn="chatLog">聊天记录</span></i>
         </div>
         <div class="dialog-message">
@@ -168,6 +170,14 @@
             <i class="fa fa-arrow-circle-right" btn="unLock"></i>
         </div>
     </div>
+</div>
+
+<div>
+    <div class="upload_image_progress hide">
+        <div class="progress" style="width: 10%;" progress="0"></div>
+    </div>
+
+    <input type="file" name="upload_image_file" class="hide">
 </div>
 
 </body>

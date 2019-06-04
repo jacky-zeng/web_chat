@@ -201,7 +201,9 @@ function getMsg(data) {
             $chat_dialog_template.find('[prop="nick_name"]').text($li_from_user.attr('nick_name'));
             $('body').append($chat_dialog_template);
             var $dialog_content = $('.chat-dialog[user_id="' + from_user_id + '"]').find('.dialog-content');
-            $dialog_content.scrollTop($dialog_content[0].scrollHeight);
+            setTimeout(function () {
+                $dialog_content.scrollTop($dialog_content[0].scrollHeight);
+            }, 500);
             initChatDialog($chat_dialog_template);
         }
 
@@ -215,6 +217,8 @@ function getMsg(data) {
         //加入到聊天对话框
         var $current_chat_dialog = $('.chat-dialog[user_id="' + from_user_id + '"]');
         $current_chat_dialog.find('ul').append($dialog_chat_user_template);
-        $current_chat_dialog.find('.dialog-content').scrollTop($current_chat_dialog.find('.dialog-content')[0].scrollHeight);
+        setTimeout(function () {
+            $current_chat_dialog.find('.dialog-content').scrollTop($current_chat_dialog.find('.dialog-content')[0].scrollHeight);
+        }, 500);
     }
 }

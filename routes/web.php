@@ -36,4 +36,8 @@ Route::group([
     Route::get('index', 'ChatController@index')->name('web_chat_index');
     Route::get('chat', 'ChatController@chat')->name('web_chat_chat');
     Route::get('chat_log', 'ChatController@chatLog')->name('web_chat_chat_log');
+
+    /*文件上传*/
+    Route::get('upload_get_token', 'UploadController@getToken');
+    Route::post('upload_upload', 'UploadController@upload');
 });

@@ -423,10 +423,10 @@ class WebSocketForChat extends Command
                 }
             }
         }
-        //获取三天内的活跃用户
+        //获取十天内的活跃用户
         $format_users = [];
-        $users = User::where('login_time', '>=', date('Y-m-d H:i:s', strtotime('-3 day')))
-            ->orWhere('logout_time', '>=', date('Y-m-d H:i:s', strtotime('-3 day')))
+        $users = User::where('login_time', '>=', date('Y-m-d H:i:s', strtotime('-10 day')))
+            ->orWhere('logout_time', '>=', date('Y-m-d H:i:s', strtotime('-10 day')))
             ->get(['id', 'nick_name', 'avatar']);
         foreach ($users as $user) {
             $format_users[EnDecryption::encrypt($user['id'])] = [

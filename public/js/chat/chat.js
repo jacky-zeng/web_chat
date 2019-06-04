@@ -32,7 +32,9 @@ $(function () {
             $chat_dialog_template.find('[prop="nick_name"]').text($(this).attr('nick_name'));
             $('body').append($chat_dialog_template);
             var $dialog_content = $('.chat-dialog[user_id="' + $(this).attr('user_id') + '"]').find('.dialog-content');
-            $dialog_content.scrollTop($dialog_content[0].scrollHeight);
+            setTimeout(function () {
+                $dialog_content.scrollTop($dialog_content[0].scrollHeight);
+            }, 500);
             initChatDialog($chat_dialog_template);
         }
     });
@@ -188,7 +190,19 @@ function initChatDialog($chat_dialog_template) {
         });
     });
 
-    $chat_dialog_template.on('click', '.dialog-tool .fa-image, .dialog-tool .fa-folder-o', function () {
+    //上传图片
+    $chat_dialog_template.on('click', '.dialog-tool .fa-image', function () {
+        var $this = $(this);
+        new Upload($('[name="upload_image_file"]'), $chat_dialog_template,function (server_file_name) {
+            $('[name="upload_image_file"]').val('');
+            sendImg($this.parents('.chat-dialog').attr('user_id'), '<img style="max-width:450px;" src="/upload/'+server_file_name+'" />');
+            $('.upload_image_progress').addClass('hide');
+        });
+        $('[name="upload_image_file"]').click();
+    });
+
+    //上传文件
+    $chat_dialog_template.on('click', '.dialog-tool .fa-folder-o', function () {
         Dialog.error('功能开发中');
     });
 
@@ -257,7 +271,6 @@ function initChatLogDialog($chat_log_dialog_template) {
         success: function (e) {
             if(e.code == 200) {
                 var user_id = $('[name="user_id"]').val();
-                console.log(e);
                 for(var i = 0; i< e.data.length; i++) {
                     var to_user_id = e.data[i].user_id;
                     var message = e.data[i].message;
@@ -284,7 +297,9 @@ function initChatLogDialog($chat_log_dialog_template) {
                     }
                 }
                 var $dialog_log_content = $chat_log_dialog_template.find('.dialog-log-content');
-                $dialog_log_content.scrollTop($dialog_log_content[0].scrollHeight);
+                setTimeout(function () {
+                    $dialog_log_content.scrollTop($dialog_log_content[0].scrollHeight);
+                }, 500);
             } else {
                 Dialog.error(e.message, false, true);
             }
@@ -313,10 +328,35 @@ function sendMessage(to_user_id) {
     $dialog_chat_mine_template.find('[prop="mine_msg"]').html(message);
     //加入到聊天对话框
     $current_chat_dialog.find('ul').append($dialog_chat_mine_template);
-    $current_chat_dialog.find('.dialog-content').scrollTop($current_chat_dialog.find('.dialog-content')[0].scrollHeight);
+    setTimeout(function () {
+        $current_chat_dialog.find('.dialog-content').scrollTop($current_chat_dialog.find('.dialog-content')[0].scrollHeight);
+    }, 500);
     $current_chat_dialog.find('[prop="message"]').find('iframe').contents().find('body').html(''); //清空打字框
     //websocket发送聊天信息 （对方user_id拼上聊天的内容）
     var data = {'from_user_id': $('[name="user_id"]').val(), 'to_user_id': to_user_id, 'message': message};
+    var ws_message = JSON.stringify(data);
+    ws.send(ws_message); //发送消息
+}
+
+//发送图片
+function sendImg(to_user_id, img_message) {
+    //获取聊天信息
+    var $current_chat_dialog = $('.chat-dialog[user_id="' + to_user_id + '"]');
+
+    //填充聊天模板
+    var $dialog_chat_mine_template = $('[prop="dialog-chat-mine-template"]').clone().removeAttr('prop').removeClass('hide');
+    var date = new Date(+new Date() + 8 * 3600 * 1000).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '');
+    $dialog_chat_mine_template.find('[prop="mine_time"]').text(date);
+    $dialog_chat_mine_template.find('[prop="mine_nick_name"]').text($('[name="nick_name"]').val());
+    $dialog_chat_mine_template.find('[prop="mine_avatar"]').attr('src', $('[name="avatar"]').val());
+    $dialog_chat_mine_template.find('[prop="mine_msg"]').html(img_message);
+    //加入到聊天对话框
+    $current_chat_dialog.find('ul').append($dialog_chat_mine_template);
+    setTimeout(function () {
+        $current_chat_dialog.find('.dialog-content').scrollTop($current_chat_dialog.find('.dialog-content')[0].scrollHeight);
+    }, 500);
+    //websocket发送聊天信息 （对方user_id拼上聊天的内容）
+    var data = {'from_user_id': $('[name="user_id"]').val(), 'to_user_id': to_user_id, 'message': img_message};
     var ws_message = JSON.stringify(data);
     ws.send(ws_message); //发送消息
 }
