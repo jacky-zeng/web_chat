@@ -35,7 +35,7 @@ class UploadController extends Controller
             return $this->errorResponse(Code::PARAMS_ERROR, '仅支持bmp,jpeg,jpg,png四种图片格式');
         }
 
-        if($total_blob_num > 5) {
+        if($total_blob_num > 10) {
             return $this->errorResponse(Code::OPERATE_FAIL, '请上传小于10M的图片');
         }
 

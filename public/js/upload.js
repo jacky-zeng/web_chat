@@ -22,7 +22,7 @@ function Upload($file_form, $chat_dialog_template, callback) {
         });
     });
 
-    const LENGTH = 2 * 1024 * 1024;  //每次 2M
+    const LENGTH = 1 * 1024 * 1024;  //每次 2M
     var start;
     var blob;
     var blob_num;
