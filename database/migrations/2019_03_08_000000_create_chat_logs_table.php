@@ -19,6 +19,7 @@ class CreateChatLogsTable extends Migration
             $table->integer('to_user_id')->default(0)->comment('（当前接收聊天的）用户id');
             $table->text('message')->comment('聊天内容');
             $table->tinyInteger('is_machine')->default(0)->comment('是否是机器人 0-否 1-是');
+            $table->tinyInteger('has_send')->default(0)->comment('是否已发送 0-否 1-是');
             $table->timestamps();
         });
     }

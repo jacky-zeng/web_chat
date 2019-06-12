@@ -6,7 +6,7 @@ use App\Models\User;
 use App\Util\CacheKey;
 use App\Util\Errors;
 use Illuminate\Support\Facades\Auth;
-use Redis;
+use Illuminate\Support\Facades\Redis;
 use Validator;
 
 class AuthRepository

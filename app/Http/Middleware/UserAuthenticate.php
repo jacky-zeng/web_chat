@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use App\Util\CacheKey;
 use Closure;
 use Illuminate\Support\Facades\Auth;
-use Redis;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cookie;
 use Redirect;
 

@@ -9,7 +9,7 @@ use App\Util\CacheKey;
 use App\Util\TuLingChat;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Auth;
-use Redis;
+use Illuminate\Support\Facades\Redis;
 use App\Util\EnDecryption;
 
 class WebSocketForChat extends Command

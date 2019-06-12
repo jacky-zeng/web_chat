@@ -20,6 +20,8 @@ class CreateUsersTable extends Migration
             $table->string('nick_name', 50);
             $table->string('avatar', 200);
             $table->rememberToken();
+            $table->dateTime('login_time')->default(null)->nullable()->comment('登录时间');
+            $table->dateTime('logout_time')->default(null)->nullable()->comment('登出时间');
             $table->timestamps();
         });
     }

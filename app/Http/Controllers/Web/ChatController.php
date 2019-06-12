@@ -8,7 +8,7 @@ use App\Util\CacheKey;
 use App\Util\EnDecryption;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Redis;
+use Illuminate\Support\Facades\Redis;
 
 class ChatController extends Controller
 {

@@ -97,7 +97,7 @@ function updateUserList(data) {
     var user_id = 0;
     var avatar = 0;
     var nick_name = 0;
-    //其实这是一个一纬数组
+    //其实这是一个一维数组
     $.each(data, function (key, item) {
         user_id = key;
         avatar = item['avatar'];
@@ -114,7 +114,7 @@ function updateUserList(data) {
                 has = true;
             }
         });
-        if (!has) { //之前用户列表中不存在该用户
+        if (!has) { //之前用户列表中不存在该用户 则将该上线用户放在最后一个离线用户前面
             var $online_status_span = '<span class="span-online"><i class="fa fa-circle"></i>&nbsp;在线</span></li>';
             var $user_li = '<li user_id="' + user_id + '" avatar="' + avatar + '" nick_name="' + nick_name + '">'
                 + '<img src="' + avatar + '" class="member-image"/>'
@@ -131,7 +131,7 @@ function updateUserList(data) {
             } else {
                 $('[prop="tab_user"]').find('ul').append($user_li);
             }
-        } else { //上线用户放离线用户前面
+        } else { //上线用户移动到离线用户前面
             $this_li.find('img').removeClass('member-not-online');
             $this_li.find('.span-not-online').html('<i class="fa fa-circle"></i>&nbsp;在线').removeClass('span-not-online').addClass('span-online');
             var $last_not_online_li = null;
@@ -149,7 +149,7 @@ function updateUserList(data) {
     }
 }
 
-//删除退出登录的用户
+//退出登录的用户变离线
 function delUserList(data) {
     //console.log('delUserList:' + data);
     data = $.parseJSON(data);
@@ -162,7 +162,7 @@ function delUserList(data) {
         $tab_user_li.find('img').addClass('member-not-online');
         $tab_user_li.find('.span-online').addClass('span-not-online').removeClass('span-online');
         //离线用户放到列表最后面
-        $('[prop="tab_user"]').find('ul').append($tab_user_li[0].outerHTML);
+        $('[prop="tab_user"]').find('ul').append($tab_user_li[0].outerHTML.replace('在线', '离线'));
         $tab_user_li.remove();
     }
 }
