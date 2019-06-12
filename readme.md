@@ -15,7 +15,8 @@ Laravel5.6 + Swoole
 >  mysql使用： 新建数据库：web_chat ；生成表：php artisan migrate
     
 >  laravel配置：
-![点击查看项目截图](https://github.com/jacky-zeng/web_chat/raw/master/public/introduction/config.png)
+
+>  ![点击查看项目截图](https://github.com/jacky-zeng/web_chat/raw/master/public/introduction/config.png)
 
 >  启动聊天服务：php artisan swoole:chat start
 
