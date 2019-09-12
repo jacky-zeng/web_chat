@@ -3,7 +3,7 @@
 > jacky-zeng's web_chat
 ``` bash
 
-Laravel5.6 + Swoole
+Laravel5.6(后端php框架) + Swoole(韩天峰的写的) + css,html,jquery(未使用前端框架，纯css+jq+html)
 
 ```
 
