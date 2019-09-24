@@ -56,10 +56,16 @@ class TuLingChat
             $code = array_get($result, 'intent.code');
             switch ($code) {
                 case 4003:
-                    $answer = [
-                        '本机器人交不起电费了，大侠打赏点给我充电费吧！',
-                        '<img width="120" height="120" src="/img/common/zhifubao.jpg" />'
-                    ];
+                    if(time() % 2 == 0) {
+                        $answer = [
+                            '本机器人交不起电费了，大侠打赏点给我充电费吧！',
+                            '<img width="120" height="120" src="/img/common/zhifubao.jpg" />'
+                        ];
+                    } else {
+                        $answer = [
+                            '图灵机器人现在要实名认证才能免费使用，希望您能谅解！'
+                        ];
+                    }
                     break;
                 case 4400:
                     $answer = ['哪里跑来的非法用户，我要报警了哈'];
