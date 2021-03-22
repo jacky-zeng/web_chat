@@ -21,7 +21,7 @@
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 <input type="hidden" name="nick_name" value="{{auth("user-auth")->user()->nick_name}}">
 <input type="hidden" name="avatar" value="{{auth("user-auth")->user()->avatar}}">
-<input type="hidden" name="swoole_http_host" value="{{ env('SWOOLE_HTTP_HOST', 'chat.zengyanqi.com:9600') }}">
+<input type="hidden" name="swoole_http_host" value="{{ env('SWOOLE_HTTP_HOST', 'chat.zengyanqi.com').':9600' }}">
 
 <!--贴边小面板-->
 <div class="chat-min hide">

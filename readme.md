@@ -18,6 +18,8 @@ Laravel5.6(后端php框架) + Swoole(韩天峰的写的) + css,html,jquery(未�
 
 >  ![点击查看项目截图](https://github.com/jacky-zeng/web_chat/raw/master/public/introduction/config.png)
 
+>  启动HTTP服务：php artisan swoole:http start
+
 >  启动聊天服务：php artisan swoole:chat start
 
 >  关闭聊天服务：php artisan swoole:chat stop
@@ -49,5 +51,3 @@ Laravel5.6(后端php框架) + Swoole(韩天峰的写的) + css,html,jquery(未�
 - [x] 表情功能 -- 完成 (20190530)
 - [x] 图片上传功能 -- 完成 (20190603)
 - [x] 聊天记录 -- 完成 (20190520)
-- [ ] 聊天室 -- 未完成
-- [ ] 最近聊天 -- 未完成
