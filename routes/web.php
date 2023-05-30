@@ -29,6 +29,10 @@ Route::group( [
     Route::post('register', 'AuthController@register')->name('user_register');                                          //注册
     Route::match(['get', 'post'], 'login', 'AuthController@login')->name('user_login');                                 //登录
     Route::get('logout', 'AuthController@logout')->name('user_logout');                                                 //退出登录
+
+    Route::get('faceIndex', 'FaceController@index')->name('face_index');
+    Route::post('exec', 'FaceController@exec')->name('face_exec');
+    Route::post('uploadFile', 'FaceController@uploadFile')->name('face_upload_file');
 });
 
 Route::group([
