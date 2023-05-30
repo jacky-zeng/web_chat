@@ -131,7 +131,7 @@ class WebSocketForChat extends Command
             if ($this->heart_beat_timer) {
                 swoole_timer_clear($this->heart_beat_timer);
             }
-            $cmd_stop = "ps -ef|grep swoole:chat|grep -v grep|cut -c 9-15|xargs kill -9";
+            $cmd_stop = "ps -ef|grep swoole:chat|grep -v grep|cut -c 9-16|xargs kill -9";
             $this->info("========just kill all of the websocket for chat process==========");
             shell_exec($cmd_stop);
             $this->info("========start web socket success==========");

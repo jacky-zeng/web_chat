@@ -18,9 +18,25 @@ Laravel5.6(后端php框架) + Swoole(韩天峰的写的) + css,html,jquery(未�
 
 >  ![点击查看项目截图](https://github.com/jacky-zeng/web_chat/raw/master/public/introduction/config.png)
 
->  启动HTTP服务：php artisan swoole:http start
+>  nginx配置：
+```
+server {
+  listen 80;
+  server_name chat.zengyanqi.com;
 
->  启动聊天服务：php artisan swoole:chat start
+  location / {
+    root /var/www/www/web_chat/public;
+    if (!-e $request_filename) {
+      #非静态文件，使用swoole服务
+      proxy_pass http://127.0.0.1:1215;
+    }
+  }
+}
+```
+
+>  启动HTTP服务(也就是127.0.0.1:1215)：php artisan swoole:http start
+
+>  启动聊天服务(也就是chat.zengyanqi.com:9600)：php artisan swoole:chat start
 
 >  关闭聊天服务：php artisan swoole:chat stop
 

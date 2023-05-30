@@ -11,6 +11,9 @@
 |
 */
 
+///Applications/XAMPP7.1/xamppfiles/htdocs/web_chat/vendor/laravel/framework/src/Illuminate/Foundation/helpers.php
+/// 被我改了 return str_replace('127.0.0.1:1215', 'chat.zengyanqi.com', app('url')->route($name, $parameters, $absolute));
+
 Route::get('/', function () {
     return \Illuminate\Support\Facades\Redirect::route('web_chat_chat');  //自动跳首页
 });
