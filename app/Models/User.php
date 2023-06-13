@@ -42,9 +42,9 @@ class User extends \Illuminate\Foundation\Auth\User
         $index = mt_rand(0, 25);
 
         $data_save = [
-            'name'      => $params['name'],
+            'name'      => \App\Util\GenerateNickName::xss($params['name']),
             'password'  => bcrypt($params['password']),
-            'nick_name' => $params['nick_name'],
+            'nick_name' => \App\Util\GenerateNickName::xss($params['nick_name']),
             'avatar'    => self::$avatars[$index],
         ];
 
@@ -52,4 +52,5 @@ class User extends \Illuminate\Foundation\Auth\User
 
         return $mdl;
     }
+
 }

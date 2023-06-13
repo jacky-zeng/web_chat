@@ -69,4 +69,21 @@ class GenerateNickName
         $last = ['骏马', '老虎', '小白兔', '斑马', '羚羊', '狮子', '河马', '泰迪', '小浣熊', '干脆面', '大水牛'];
         return $last;
     }
+
+    public static function xss($html)
+    {
+        //仅对script做了防xss处理
+        $pattern = '/<script.*?<\/script>/';
+        preg_match_all($pattern, $html, $matches);
+
+        if(!empty($matches)) {
+            foreach ($matches[0] as $match) {
+                $temp_str = str_replace('<script>', '&lt;script&gt;', $match);
+                $temp_str = str_replace('</script>', '&lt;/script&gt;', $temp_str);
+                $html     = str_replace($match, $temp_str, $html);
+            }
+        }
+
+        return $html;
+    }
 }

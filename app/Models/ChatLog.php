@@ -20,7 +20,7 @@ class ChatLog extends \Illuminate\Foundation\Auth\User
             'user_id'    => $params['user_id'],
             'to_user_id' => $params['to_user_id'],
             'is_machine' => array_get($params, 'is_machine') ? : self::IS_MACHINE_NO,
-            'message'    => self::xss($params['message']),
+            'message'    => \App\Util\GenerateNickName::xss($params['message']),
             'has_send'   => array_get($params, 'has_send') ? : self::HAS_SEND_NO
         ];
 
@@ -29,20 +29,4 @@ class ChatLog extends \Illuminate\Foundation\Auth\User
         return $mdl;
     }
 
-    private static function xss($html)
-    {
-        //仅对script做了防xss处理
-        $pattern = '/<script.*?<\/script>/';
-        preg_match_all($pattern, $html, $matches);
-
-        if(!empty($matches)) {
-            foreach ($matches[0] as $match) {
-                $temp_str = str_replace('<script>', '&lt;script&gt;', $match);
-                $temp_str = str_replace('</script>', '&lt;/script&gt;', $temp_str);
-                $html     = str_replace($match, $temp_str, $html);
-            }
-        }
-
-        return $html;
-    }
 }
