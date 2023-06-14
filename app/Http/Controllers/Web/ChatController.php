@@ -33,6 +33,12 @@ class ChatController extends Controller
         ]);
     }
 
+    //聊天面板首页(测试麻将)
+    public function chatChess()
+    {
+        return view('web.chat.chatChess');
+    }
+
     //聊天记录
     public function chatLog(Request $request, ChatRepository $chatRepository)
     {

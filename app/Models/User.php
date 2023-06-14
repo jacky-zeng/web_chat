@@ -53,4 +53,35 @@ class User extends \Illuminate\Foundation\Auth\User
         return $mdl;
     }
 
+    public static function createOrUpdate($name, $group_num)
+    {
+        $user = self::where('name', $name)
+            ->get(['id', 'name', 'group_num']);
+
+        if (count($user)) {
+            self::find($user[0]['id'])
+                ->update([
+                    'group_num' => $group_num,
+                ]);
+
+            return $user[0];
+        } else {
+            $data_save = [
+                'group_num' => $group_num,
+                'name'      => $name,
+                'nick_name' => 'nick_name',
+                'password'  => '',
+                'avatar'    => self::$avatars[mt_rand(0, 25)],
+            ];
+
+            $mdl = self::create($data_save);
+
+            return [
+                'id'        => $mdl->id,
+                'name'      => $name,
+                'group_num' => $group_num
+            ];
+        }
+    }
+
 }

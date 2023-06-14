@@ -33,6 +33,8 @@ Route::group( [
     Route::get('faceIndex', 'FaceController@index')->name('face_index');
     Route::post('exec', 'FaceController@exec')->name('face_exec');
     Route::post('uploadFile', 'FaceController@uploadFile')->name('face_upload_file');
+
+    Route::get('chat_chess', 'ChatController@chatChess')->name('web_chat_chat_chess');                                  //麻将测试页
 });
 
 Route::group([
