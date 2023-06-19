@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\ChatGroupLog;
 use App\Models\User;
 use App\Models\WebSocket;
+use App\Repositories\ChessRepository;
 use App\Util\CacheKey;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Redis;
@@ -172,27 +173,111 @@ class WebSocketForChatChess extends Command
         $this->info("欢迎客户端 {$request->fd} 连接本服务器");
         $connect_success = true;
         try {
-            $group_num        = $request->get['group_num'];        //牌桌号
-            $device_unique_id = $request->get['device_unique_id']; //设备唯一id
-            if (empty($group_num)) {
-                $this->info("客户端 {$request->fd} 牌桌失败");
-                $ws_server->disconnect($request->fd, 1000, '牌桌失败');
-                return false;
-            }
+            /** 用户开麻将房或者加入牌桌：一个房间只有一个开房间的人，且，一个房间最多4人 **/
+            $group_num        = $request->get['group_num'] ?? 0;        //创建牌桌号
+            $join_group_num   = $request->get['join_group_num'] ?? 0;   //加入牌桌号
+            $device_unique_id = $request->get['device_unique_id'] ?? 0; //设备唯一id
             if (empty($device_unique_id)) {
+                $connect_success = false;
                 $this->info("客户端 {$request->fd} 鉴权失败(empty device)");
+                $send = [
+                    'type'    => -1,
+                    'message' => '鉴权失败(empty device)',
+                    'date'    => date('Y-m-d H:i:s')
+                ];
+                $ws_server->push($request->fd, json_encode($send));
                 $ws_server->disconnect($request->fd, 1000, '鉴权失败(empty device)');
-                return false;
             }
-            $user = User::createOrUpdate($device_unique_id, $group_num);
-            Redis::set($device_unique_id, $user['id']);
+            if (empty($group_num) && empty($join_group_num)) {
+                $connect_success = false;
+                $this->info("客户端 {$request->fd} 牌桌失败");
+                $send = [
+                    'type'    => -1,
+                    'message' => '牌桌失败',
+                    'date'    => date('Y-m-d H:i:s')
+                ];
+                $ws_server->push($request->fd, json_encode($send));
+                $ws_server->disconnect($request->fd, 1000, '牌桌失败');
+            }
+            if (!empty($group_num)) { //创建牌桌
+                $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
+                if (!empty($redis_en_user_ids)) {
+                    $connect_success = false;
+                    $this->info("客户端 {$request->fd} 创建牌桌失败，牌桌已存在");
+                    $send = [
+                        'type'    => -1,
+                        'message' => '创建牌桌失败，牌桌已存在' . json_encode($redis_en_user_ids),
+                        'date'    => date('Y-m-d H:i:s')
+                    ];
+                    $ws_server->push($request->fd, json_encode($send));
+                    $ws_server->disconnect($request->fd, 1000, '创建牌桌失败，牌桌已存在');
+                } else {
+                    $user = User::createOrUpdate($device_unique_id, $group_num);
+                    Redis::set(sprintf(CacheKey::DEVICE_UNIQUE_ID_KEY, $device_unique_id), json_encode([
+                        'user_id'  => $user['id'],
+                        'is_owner' => 1
+                    ]));
+                    Redis::set(sprintf(CacheKey::FD_KEY, $request->fd), json_encode([
+                        'user_id'   => $user['id'],
+                        'group_num' => $group_num
+                    ]));
+                    $send = [
+                        'type'    => 0,
+                        'message' => 'create success',
+                        'date'    => date('Y-m-d H:i:s')
+                    ];
+                    $ws_server->push($request->fd, json_encode($send));
+                    $connect_success = true;
+                }
+            } elseif (!empty($join_group_num)) { //加入牌桌
+                $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $join_group_num));
+                if (empty($redis_en_user_ids)) {
+                    $connect_success = false;
+                    $this->info("客户端 {$request->fd} 加入牌桌失败，牌桌不存在");
+                    $send = [
+                        'type'    => -1,
+                        'message' => '加入牌桌失败，牌桌不存在',
+                        'date'    => date('Y-m-d H:i:s')
+                    ];
+                    $ws_server->push($request->fd, json_encode($send));
+                    $ws_server->disconnect($request->fd, 1000, '加入牌桌失败，牌桌不存在');
+                } elseif (count($redis_en_user_ids) >= 4) {
+                    $connect_success = false;
+                    $this->info("客户端 {$request->fd} 加入牌桌失败，牌桌已满");
+                    $send = [
+                        'type'    => -1,
+                        'message' => '加入牌桌失败，牌桌已满',
+                        'date'    => date('Y-m-d H:i:s')
+                    ];
+                    $ws_server->push($request->fd, json_encode($send));
+                    $ws_server->disconnect($request->fd, 1000, '加入牌桌失败，牌桌已满');
+                } else {
+                    $user = User::createOrUpdate($device_unique_id, $join_group_num);
+                    Redis::set(sprintf(CacheKey::DEVICE_UNIQUE_ID_KEY, $device_unique_id), json_encode([
+                        'user_id'  => $user['id'],
+                        'is_owner' => 0
+                    ]));
+                    Redis::set(sprintf(CacheKey::FD_KEY, $request->fd), json_encode([
+                        'user_id'   => $user['id'],
+                        'group_num' => $join_group_num
+                    ]));
+                    $send = [
+                        'type'    => 0,
+                        'message' => 'join success',
+                        'date'    => date('Y-m-d H:i:s')
+                    ];
+                    $ws_server->push($request->fd, json_encode($send));
+                    $connect_success = true;
+                }
+            }
         } catch (\Exception $ex) {
             $connect_success = false;
-            $this->info("客户端 {$request->fd} 鉴权失败(Exception)" . $ex->getMessage());
+            $this->info("客户端 {$request->fd} 鉴权失败(Exception)" . $ex->getMessage() . $ex->getTraceAsString() . $ex->getLine());
             $ws_server->disconnect($request->fd, 1000, '鉴权失败(Exception)');
         }
         if ($connect_success) {
-            $user_id = $user['id'];
+            $group_num = $group_num ? $group_num : ($join_group_num ? $join_group_num : 0);
+            $user_id   = $user['id'];
 
             //1.用户id跟websocket的fd做绑定（存入redis）
             $user_data = [
@@ -201,22 +286,21 @@ class WebSocketForChatChess extends Command
                 'fd'        => $request->fd
             ];
             Redis::hSet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id, json_encode($user_data));
-            //2.获取用户列表
-            //$user_list = $this->getUserList($ws_server);
-            $group_user_list = $this->getGroupUserList($ws_server, $group_num);
-            $ws_server->push($request->fd, WebSocket::TYPE_USER_LIST . WebSocket::SPLIT_WORD . json_encode($group_user_list));
-            //3.task广播：用户列表加入一个用户
-            foreach ($group_user_list as $group_user_item) {
-                $task_data = [
-                    'type' => WebSocket::TYPE_USER_LOGIN,
-                    'fd'   => $group_user_item['fd'],
-                    'data' => [
-                        'group_num' => $group_user_item['group_num'],
-                        $user_id    => $user_data
-                    ]
-                ];
-                $ws_server->task($task_data);
-            }
+            ////2.获取用户列表
+            //$group_user_list = $this->getGroupUserList($ws_server, $group_num);
+            //$ws_server->push($request->fd, WebSocket::TYPE_USER_LIST . WebSocket::SPLIT_WORD . json_encode($group_user_list));
+            ////3.task广播：用户列表加入一个用户
+            //foreach ($group_user_list as $group_user_item) {
+            //    $task_data = [
+            //        'type' => WebSocket::TYPE_USER_LOGIN,
+            //        'fd'   => $group_user_item['fd'],
+            //        'data' => [
+            //            'group_num' => $group_user_item['group_num'],
+            //            $user_id    => $user_data
+            //        ]
+            //    ];
+            //    $ws_server->task($task_data);
+            //}
             //4.离线信息发送给当前登录用户
             //$this->sendOfflineMsg($ws_server, $user_id);
         }
@@ -242,25 +326,45 @@ class WebSocketForChatChess extends Command
     {
         switch ($data['type']) {
             case WebSocket::TYPE_USER_LOGIN:
-                $ws_server->push($data['fd'], WebSocket::TYPE_USER_LOGIN . WebSocket::SPLIT_WORD . json_encode($data['data']));
+                //$ws_server->push($data['fd'], WebSocket::TYPE_USER_LOGIN . WebSocket::SPLIT_WORD . json_encode($data['data']));
                 break;
             case WebSocket::TYPE_USER_LOGOUT:
-                $ws_server->push($data['fd'], WebSocket::TYPE_USER_LOGOUT . WebSocket::SPLIT_WORD . json_encode($data['data']));
+                //$ws_server->push($data['fd'], WebSocket::TYPE_USER_LOGOUT . WebSocket::SPLIT_WORD . json_encode($data['data']));
                 break;
             case WebSocket::TYPE_MSG:
-                $from_user_id = Redis::get($data['data']['device_unique_id']);
-                $send       = [
-                    'from_user_id' => $from_user_id,
-                    'date'         => date('Y-m-d H:i:s'),
-                    'message'      => $data['data']['message']
+                if (empty($data['data']['group_num']) || empty($data['data']['type'])) {
+                    $this->info("客户端发了：空的" . json_encode($data));
+                    break;
+                }
+                $this->info("客户端发了：" . $data['data']['type'].' '.$data['data']['message']);
+                $from_user_id = json_decode(Redis::get(sprintf(CacheKey::DEVICE_UNIQUE_ID_KEY, $data['data']['device_unique_id'])), true)['user_id'];
+                $type         = $data['data']['type'];
+                if ($type) {
+                    switch ($type) {
+                        case ChatGroupLog::TYPE_INIT_WHOLE:
+                            $initCards = (new ChessRepository())->initCards();
+                            $this->info($initCards);
+                            $message = $initCards;
+                            break;
+                        default:
+                            $message = 'error';
+                    }
+                } else {
+                    $message = $data['data']['message'];
+                }
+
+                $send      = [
+                    'type'    => ChatGroupLog::TYPE_INIT_WHOLE,
+                    'message' => $message,
+                    'date'    => date('Y-m-d H:i:s')
                 ];
-                $group_num  = $data['data']['group_num'];
-                $to_user    = Redis::hGet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $from_user_id);
-                $to_fd      = array_get(json_decode($to_user, true), 'fd');
-                //$this->info('发送聊天信息:'.$to_fd.'|'.WebSocket::TYPE_MSG.WebSocket::SPLIT_WORD.json_encode($send));
+                $group_num = $data['data']['group_num'];
+                $to_user   = Redis::hGet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $from_user_id);
+                $to_fd     = array_get(json_decode($to_user, true), 'fd');
+
                 if ($to_fd) { //用户在线 才发送
                     try {
-                        $ws_server->push($to_fd, WebSocket::TYPE_MSG . WebSocket::SPLIT_WORD . json_encode($send));
+                        $ws_server->push($to_fd, json_encode($send));
                     } catch (\Exception $ex) {
                         Redis::hDel(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $from_user_id);
                         $to_fd = false;
@@ -268,14 +372,13 @@ class WebSocketForChatChess extends Command
                 }
                 //记录聊天记录
                 $data_save = [
-                    'group_num'  => $data['data']['group_num'],
-                    'user_id'    => $from_user_id,
-                    'type'       => 0,
-                    'message'    => $data['data']['message'],
-                    'has_send'   => $to_fd ? ChatGroupLog::HAS_SEND_YES : ChatGroupLog::HAS_SEND_NO
+                    'group_num' => $data['data']['group_num'],
+                    'user_id'   => $from_user_id,
+                    'type'      => 0,
+                    'message'   => $message,
+                    'has_send'  => $to_fd ? ChatGroupLog::HAS_SEND_YES : ChatGroupLog::HAS_SEND_NO
                 ];
                 ChatGroupLog::createModel($data_save);
-
                 break;
             default:
                 break;
@@ -292,23 +395,21 @@ class WebSocketForChatChess extends Command
     {
         $this->info("客户端 {$fd} 已关闭连接");
         //1.找出该用户id，并从redis中删除该用户
-        $user_id           = 0;
-        $redis_en_user_ids = Redis::hGetAll(CacheKey::USER_IDS_KEY);
-        foreach ($redis_en_user_ids as $redis_en_user_id => $user) {
+        $user = Redis::get(sprintf(CacheKey::FD_KEY, $fd));
+
+        if ($user) {
             $user = json_decode($user, true);
-            if ($user['fd'] == $fd) {
-                $user_id = $redis_en_user_id;
-            }
-        }
-        Redis::hDel(CacheKey::USER_IDS_KEY, $user_id);
-        //2.task广播：用户列表删除一个用户
-        foreach ($ws_server->connections as $connect_fd) {
-            if ($connect_fd != $fd) {
-                $task_data = [
+            Redis::hDel(sprintf(CacheKey::GROUP_USER_IDS_KEY, $user['group_num']), $user['user_id']);
+            //2.task广播：用户列表删除一个用户
+            $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $user['group_num']));
+            $this->info(json_encode($redis_en_user_ids));
+            foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
+                $redis_user = json_decode($redis_user, true);
+                $task_data  = [
                     'type' => WebSocket::TYPE_USER_LOGOUT,
-                    'fd'   => $connect_fd,
+                    'fd'   => $redis_user['fd'],
                     'data' => [
-                        $user_id => $user_id
+                        $user['user_id'] => $user['user_id']
                     ]
                 ];
                 $ws_server->task($task_data);

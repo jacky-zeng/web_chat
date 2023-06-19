@@ -6,6 +6,8 @@ class ChatGroupLog extends \Illuminate\Foundation\Auth\User
 {
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
+    const TYPE_INIT_WHOLE = 1; //获取整套牌
+
     //是否是机器人 0-否 1-是
     const IS_MACHINE_YES = 1;
     const IS_MACHINE_NO  = 0;

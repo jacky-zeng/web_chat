@@ -72,17 +72,8 @@ class GenerateNickName
 
     public static function xss($html)
     {
-        //仅对script做了防xss处理
-        $pattern = '/<script.*?<\/script>/';
-        preg_match_all($pattern, $html, $matches);
-
-        if(!empty($matches)) {
-            foreach ($matches[0] as $match) {
-                $temp_str = str_replace('<script>', '&lt;script&gt;', $match);
-                $temp_str = str_replace('</script>', '&lt;/script&gt;', $temp_str);
-                $html     = str_replace($match, $temp_str, $html);
-            }
-        }
+        $html = str_replace('<', '&lt;', $html);
+        $html = str_replace('>', '&gt;', $html);
 
         return $html;
     }
