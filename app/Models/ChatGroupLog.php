@@ -6,7 +6,13 @@ class ChatGroupLog extends \Illuminate\Foundation\Auth\User
 {
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
-    const TYPE_INIT_WHOLE = 1; //获取整套牌
+    const TYPE_CONNECT = 0;    //客户端连接成功
+    const TYPE_END = 1;        //牌局结束（有人胡了/没牌了）
+    const TYPE_START = 2;      //游戏开始
+    const TYPE_USER_GRAB = 3;  //用户抓牌
+    const TYPE_USER_KNOCK = 4; //用户出牌
+    const TYPE_AN_GANG = 5;    //暗杠
+    const TYPE_GANG = 6;       //明杠
 
     //是否是机器人 0-否 1-是
     const IS_MACHINE_YES = 1;

@@ -66,7 +66,6 @@ class ChessRepository
 
         $randomUsers = array_chunk($arr, 13);
 
-
         return $randomDiceSide . '|'
             . implode(',', $randomUsers[0]) . '#' . implode(',', $randomUsers[1]) . '#' . implode(',', $randomUsers[2]) . '#' . implode(',', $randomUsers[3]) . '#'
             . '|' . json_encode($dictWhole);

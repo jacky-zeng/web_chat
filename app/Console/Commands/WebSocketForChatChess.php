@@ -215,14 +215,14 @@ class WebSocketForChatChess extends Command
                     $user = User::createOrUpdate($device_unique_id, $group_num);
                     Redis::set(sprintf(CacheKey::DEVICE_UNIQUE_ID_KEY, $device_unique_id), json_encode([
                         'user_id'  => $user['id'],
-                        'is_owner' => 1
+                        //'is_owner' => 1
                     ]));
                     Redis::set(sprintf(CacheKey::FD_KEY, $request->fd), json_encode([
                         'user_id'   => $user['id'],
                         'group_num' => $group_num
                     ]));
                     $send = [
-                        'type'    => 0,
+                        'type'    => ChatGroupLog::TYPE_CONNECT,
                         'message' => 'create success',
                         'date'    => date('Y-m-d H:i:s')
                     ];
@@ -255,7 +255,7 @@ class WebSocketForChatChess extends Command
                     $user = User::createOrUpdate($device_unique_id, $join_group_num);
                     Redis::set(sprintf(CacheKey::DEVICE_UNIQUE_ID_KEY, $device_unique_id), json_encode([
                         'user_id'  => $user['id'],
-                        'is_owner' => 0
+                        //'is_owner' => 0
                     ]));
                     Redis::set(sprintf(CacheKey::FD_KEY, $request->fd), json_encode([
                         'user_id'   => $user['id'],
@@ -286,23 +286,40 @@ class WebSocketForChatChess extends Command
                 'fd'        => $request->fd
             ];
             Redis::hSet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id, json_encode($user_data));
-            ////2.获取用户列表
-            //$group_user_list = $this->getGroupUserList($ws_server, $group_num);
-            //$ws_server->push($request->fd, WebSocket::TYPE_USER_LIST . WebSocket::SPLIT_WORD . json_encode($group_user_list));
-            ////3.task广播：用户列表加入一个用户
-            //foreach ($group_user_list as $group_user_item) {
-            //    $task_data = [
-            //        'type' => WebSocket::TYPE_USER_LOGIN,
-            //        'fd'   => $group_user_item['fd'],
-            //        'data' => [
-            //            'group_num' => $group_user_item['group_num'],
-            //            $user_id    => $user_data
-            //        ]
-            //    ];
-            //    $ws_server->task($task_data);
-            //}
-            //4.离线信息发送给当前登录用户
-            //$this->sendOfflineMsg($ws_server, $user_id);
+
+            $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
+            if (count($redis_en_user_ids) == 1) { //todo  ==4
+                //开始游戏
+                $initCards = (new ChessRepository())->initCards();
+                $this->info(substr($initCards, 0, 200));
+                $message = $initCards;
+
+                $realUserDiceSide = 4;  //todo
+                $isOnlineSide     = []; //在线的用户方位
+                foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
+                    $isOnlineSide[] = $realUserDiceSide;
+                    --$realUserDiceSide;
+                }
+                $realUserDiceSide = 4; //todo
+                foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
+                    $redis_user = json_decode($redis_user, true);
+                    $send       = [
+                        'type'    => ChatGroupLog::TYPE_START,
+                        'message' => $realUserDiceSide . '|' . $message . '|' . implode('#', $isOnlineSide),
+                        'date'    => date('Y-m-d H:i:s')
+                    ];
+
+                    $ws_server->push($redis_user['fd'], json_encode($send));
+                    $this->info($redis_user['fd'] . '|user_id=' . $redis_en_user_id . '|realUserDiceSide=' . $realUserDiceSide);
+
+                    //将用户的真实方位，存入用户对象
+                    $userInfo                        = json_decode(Redis::get(sprintf(CacheKey::DEVICE_UNIQUE_ID_KEY, $device_unique_id)), true);
+                    $userInfo['real_user_dice_side'] = $realUserDiceSide;
+                    Redis::set(sprintf(CacheKey::DEVICE_UNIQUE_ID_KEY, $device_unique_id), json_encode($userInfo));
+
+                    --$realUserDiceSide;
+                }
+            }
         }
     }
 
@@ -336,49 +353,104 @@ class WebSocketForChatChess extends Command
                     $this->info("客户端发了：空的" . json_encode($data));
                     break;
                 }
-                $this->info("客户端发了：" . $data['data']['type'].' '.$data['data']['message']);
-                $from_user_id = json_decode(Redis::get(sprintf(CacheKey::DEVICE_UNIQUE_ID_KEY, $data['data']['device_unique_id'])), true)['user_id'];
-                $type         = $data['data']['type'];
-                if ($type) {
-                    switch ($type) {
-                        case ChatGroupLog::TYPE_INIT_WHOLE:
-                            $initCards = (new ChessRepository())->initCards();
-                            $this->info($initCards);
-                            $message = $initCards;
-                            break;
-                        default:
-                            $message = 'error';
-                    }
-                } else {
-                    $message = $data['data']['message'];
-                }
-
-                $send      = [
-                    'type'    => ChatGroupLog::TYPE_INIT_WHOLE,
-                    'message' => $message,
-                    'date'    => date('Y-m-d H:i:s')
-                ];
+                $type = $data['data']['type'];
                 $group_num = $data['data']['group_num'];
-                $to_user   = Redis::hGet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $from_user_id);
-                $to_fd     = array_get(json_decode($to_user, true), 'fd');
+                $device_unique_id = $data['data']['device_unique_id'];
+                $message = $data['data']['message'];
 
-                if ($to_fd) { //用户在线 才发送
-                    try {
-                        $ws_server->push($to_fd, json_encode($send));
-                    } catch (\Exception $ex) {
-                        Redis::hDel(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $from_user_id);
-                        $to_fd = false;
-                    }
+                $this->info("客户端发了：" . $type.'|'.$group_num.'|'.$device_unique_id.'|'.$message);
+
+                $userInfo = json_decode(Redis::get(sprintf(CacheKey::DEVICE_UNIQUE_ID_KEY, $device_unique_id)), true);
+                //$from_user_id = $userInfo['user_id'];
+                $realUserDiceSide = $userInfo['real_user_dice_side'];
+                switch ($type) {
+                    case ChatGroupLog::TYPE_END:
+                        $winList = $message;
+                        $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
+
+                        foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
+                            $redis_user = json_decode($redis_user, true);
+
+                            $send = [
+                                'type'    => $type,
+                                'message' => $winList,
+                                'date'    => date('Y-m-d H:i:s')
+                            ];
+
+                            $ws_server->push($redis_user['fd'], json_encode($send));
+                            $this->info($redis_user['fd'].'|user_id='.$redis_en_user_id . '|message='. $send['message']);
+                        }
+                        break;
+                    case ChatGroupLog::TYPE_USER_GRAB:
+                        $messages = explode('|', $message);
+                        $realActivityDiceSide = $messages[0];
+                        $keyGrab = $messages[1];
+                        $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
+
+                        foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
+                            $redis_user = json_decode($redis_user, true);
+
+                            $send = [
+                                'type'    => $type,
+                                'message' => $realActivityDiceSide.'|'. $realUserDiceSide . '|' . $keyGrab,
+                                'date'    => date('Y-m-d H:i:s')
+                            ];
+
+                            $ws_server->push($redis_user['fd'], json_encode($send));
+                            $this->info($redis_user['fd'].'|user_id='.$redis_en_user_id . '|message='. $send['message']);
+                        }
+                        break;
+                    case ChatGroupLog::TYPE_USER_KNOCK:
+                        $messages = explode('|', $message);
+                        $realActivityDiceSide = $messages[0];
+                        $keyKnock = $messages[1];
+                        $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
+
+                        foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
+                            $redis_user = json_decode($redis_user, true);
+
+                            $send = [
+                                'type'    => $type,
+                                'message' => $realActivityDiceSide.'|'. $realUserDiceSide . '|' . $keyKnock,
+                                'date'    => date('Y-m-d H:i:s')
+                            ];
+
+                            $ws_server->push($redis_user['fd'], json_encode($send));
+                            $this->info($redis_user['fd'].'|user_id='.$redis_en_user_id . '|message='. $send['message']);
+                        }
+                        break;
+
+                    default:
+                        break;
                 }
-                //记录聊天记录
-                $data_save = [
-                    'group_num' => $data['data']['group_num'],
-                    'user_id'   => $from_user_id,
-                    'type'      => 0,
-                    'message'   => $message,
-                    'has_send'  => $to_fd ? ChatGroupLog::HAS_SEND_YES : ChatGroupLog::HAS_SEND_NO
-                ];
-                ChatGroupLog::createModel($data_save);
+
+
+                //$send      = [
+                //    'type'    => ChatGroupLog::TYPE_PREPARE,
+                //    'message' => $message,
+                //    'date'    => date('Y-m-d H:i:s')
+                //];
+                //$group_num = $data['data']['group_num'];
+                //$to_user   = Redis::hGet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $from_user_id);
+                //$to_fd     = array_get(json_decode($to_user, true), 'fd');
+
+                //if ($to_fd) { //用户在线 才发送
+                //    try {
+                //        $ws_server->push($to_fd, json_encode($send));
+                //    } catch (\Exception $ex) {
+                //        Redis::hDel(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $from_user_id);
+                //        $to_fd = false;
+                //    }
+                //}
+                ////记录聊天记录
+                //$data_save = [
+                //    'group_num' => $data['data']['group_num'],
+                //    'user_id'   => $from_user_id,
+                //    'type'      => 0,
+                //    'message'   => $message,
+                //    'has_send'  => $to_fd ? ChatGroupLog::HAS_SEND_YES : ChatGroupLog::HAS_SEND_NO
+                //];
+                //ChatGroupLog::createModel($data_save);
                 break;
             default:
                 break;
@@ -450,30 +522,6 @@ class WebSocketForChatChess extends Command
         } else {
             $this->info("ERROR:不支持该系统");
         }
-    }
-
-    /**
-     * 获取组内在线用户列表
-     * @param $ws_server
-     * @param $group_num
-     * @return array
-     */
-    private function getGroupUserList($ws_server, $group_num)
-    {
-        $user_list = [];
-        //获取组内在线用户
-        $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
-        foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
-            $redis_user = json_decode($redis_user, true);
-            foreach ($ws_server->connections as $connect_fd) {
-                if ($redis_user['fd'] == $connect_fd) {
-                    $redis_user['is_online']      = 1;
-                    $user_list[$redis_en_user_id] = $redis_user;
-                }
-            }
-        }
-
-        return $user_list;
     }
 
 }
