@@ -288,7 +288,7 @@ class WebSocketForChatChess extends Command
             Redis::hSet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id, json_encode($user_data));
 
             $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
-            if (count($redis_en_user_ids) == 1) { //todo  ==4
+            if (count($redis_en_user_ids) == 2) { //todo  ==4
                 //开始游戏
                 $initCards = (new ChessRepository())->initCards();
                 $this->info(substr($initCards, 0, 200));
@@ -311,12 +311,6 @@ class WebSocketForChatChess extends Command
 
                     $ws_server->push($redis_user['fd'], json_encode($send));
                     $this->info($redis_user['fd'] . '|user_id=' . $redis_en_user_id . '|realUserDiceSide=' . $realUserDiceSide);
-
-                    //将用户的真实方位，存入用户对象
-                    $userInfo                        = json_decode(Redis::get(sprintf(CacheKey::DEVICE_UNIQUE_ID_KEY, $device_unique_id)), true);
-                    $userInfo['real_user_dice_side'] = $realUserDiceSide;
-                    Redis::set(sprintf(CacheKey::DEVICE_UNIQUE_ID_KEY, $device_unique_id), json_encode($userInfo));
-
                     --$realUserDiceSide;
                 }
             }
@@ -362,7 +356,7 @@ class WebSocketForChatChess extends Command
 
                 $userInfo = json_decode(Redis::get(sprintf(CacheKey::DEVICE_UNIQUE_ID_KEY, $device_unique_id)), true);
                 //$from_user_id = $userInfo['user_id'];
-                $realUserDiceSide = $userInfo['real_user_dice_side'];
+                //sleep(2);
                 switch ($type) {
                     case ChatGroupLog::TYPE_END:
                         $winList = $message;
@@ -378,13 +372,14 @@ class WebSocketForChatChess extends Command
                             ];
 
                             $ws_server->push($redis_user['fd'], json_encode($send));
-                            $this->info($redis_user['fd'].'|user_id='.$redis_en_user_id . '|message='. $send['message']);
+                            $this->info($redis_user['fd'].'|结束 user_id='.$redis_en_user_id . '|message='. $send['message']);
                         }
                         break;
                     case ChatGroupLog::TYPE_USER_GRAB:
                         $messages = explode('|', $message);
                         $realActivityDiceSide = $messages[0];
-                        $keyGrab = $messages[1];
+                        $realUserDiceSide = $messages[1];
+                        $keyGrab = $messages[2];
                         $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
 
                         foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
@@ -395,15 +390,17 @@ class WebSocketForChatChess extends Command
                                 'message' => $realActivityDiceSide.'|'. $realUserDiceSide . '|' . $keyGrab,
                                 'date'    => date('Y-m-d H:i:s')
                             ];
+                            $this->info("==回复客户端：==" . $device_unique_id.'|'.$send['message']);
 
                             $ws_server->push($redis_user['fd'], json_encode($send));
-                            $this->info($redis_user['fd'].'|user_id='.$redis_en_user_id . '|message='. $send['message']);
+                            $this->info($redis_user['fd'].'|抓牌 user_id='.$redis_en_user_id . '|message='. $send['message']);
                         }
                         break;
                     case ChatGroupLog::TYPE_USER_KNOCK:
                         $messages = explode('|', $message);
                         $realActivityDiceSide = $messages[0];
-                        $keyKnock = $messages[1];
+                        $realUserDiceSide = $messages[1];
+                        $keyKnock = $messages[2];
                         $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
 
                         foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
@@ -416,10 +413,28 @@ class WebSocketForChatChess extends Command
                             ];
 
                             $ws_server->push($redis_user['fd'], json_encode($send));
-                            $this->info($redis_user['fd'].'|user_id='.$redis_en_user_id . '|message='. $send['message']);
+                            $this->info($redis_user['fd'].'|出牌 user_id='.$redis_en_user_id . '|message='. $send['message']);
                         }
                         break;
+                    case ChatGroupLog::TYPE_NEXT:
+                        $messages = explode('|', $message);
+                        $realActivityDiceSide = $messages[0];
+                        $realUserDiceSide = $messages[1];
+                        $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
 
+                        foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
+                            $redis_user = json_decode($redis_user, true);
+
+                            $send = [
+                                'type'    => $type,
+                                'message' => $realActivityDiceSide.'|'. $realUserDiceSide,
+                                'date'    => date('Y-m-d H:i:s')
+                            ];
+
+                            $ws_server->push($redis_user['fd'], json_encode($send));
+                            $this->info($redis_user['fd'].'|轮到下一个 user_id='.$redis_en_user_id . '|message='. $send['message']);
+                        }
+                        break;
                     default:
                         break;
                 }

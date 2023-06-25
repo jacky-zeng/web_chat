@@ -13,6 +13,9 @@ class ChatGroupLog extends \Illuminate\Foundation\Auth\User
     const TYPE_USER_KNOCK = 4; //用户出牌
     const TYPE_AN_GANG = 5;    //暗杠
     const TYPE_GANG = 6;       //明杠
+    const TYPE_CHI = 7;        //吃
+    const TYPE_PENG = 8;       //碰
+    const TYPE_NEXT = 9;       //轮到下一个
 
     //是否是机器人 0-否 1-是
     const IS_MACHINE_YES = 1;
