@@ -65,11 +65,23 @@ class WebSocketForChatChess extends Command
     private function start()
     {
         $this->info("========begin to start web socket==========");
-        $this->ws_server = new \swoole_websocket_server('0.0.0.0', self::PORT);
+
+        $this->ws_server = new \swoole_websocket_server('0.0.0.0', self::PORT, SWOOLE_PROCESS, SWOOLE_SOCK_TCP | SWOOLE_SSL);
+
         $this->ws_server->set([
+            'ssl_cert_file' => '/root/.acme.sh/www.zengyanqi.com/www.zengyanqi.com.cer',
+            'ssl_key_file' => '/root/.acme.sh/www.zengyanqi.com/www.zengyanqi.com.key',
+            // 其他服务器配置选项...
             'worker_num'      => 2, //一般设置为服务器CPU数的1-4倍
             'task_worker_num' => 4, //task进程的数量
         ]);
+
+        //$this->ws_server = new \swoole_websocket_server('0.0.0.0', self::PORT);
+
+        //$this->ws_server->set([
+        //    'worker_num'      => 2, //一般设置为服务器CPU数的1-4倍
+        //    'task_worker_num' => 4, //task进程的数量
+        //]);
 
         $this->ws_server->on('start', function ($ws_server) {
             $this->onStart($ws_server);
@@ -350,6 +362,16 @@ class WebSocketForChatChess extends Command
                 $device_unique_id = $data['data']['device_unique_id'];
                 $message          = $data['data']['message'];
 
+                if($type == ChatGroupLog::TYPE_OPERATE) {
+                    $messagesTT         = explode('|', $message);
+                    $activeCardTT       = $messagesTT[2];
+
+                    $operateUsersTT = Redis::hGetAll(sprintf(CacheKey::PREFIX, $group_num . '_') . sprintf(CacheKey::USER_CAN_OPERATE_KEY, $activeCardTT));
+                    if(count($operateUsersTT) == 0) {
+                        $this->info("");
+                        $this->info("-------------------------------------------------------------------------------");
+                    }
+                }
                 $this->info("客户端发了：" . $type . '|' . $group_num . '|' . $device_unique_id . '|' . $message);
 
                 //$userInfo = json_decode(Redis::get(sprintf(CacheKey::DEVICE_UNIQUE_ID_KEY, $device_unique_id)), true);
@@ -359,15 +381,13 @@ class WebSocketForChatChess extends Command
                     case ChatGroupLog::TYPE_END:
                         $this->deleteRedisCache($group_num);
 
-                        $winList           = $message;
                         $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
-
                         foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
                             $redis_user = json_decode($redis_user, true);
 
                             $send = [
                                 'type'    => $type,
-                                'message' => $winList,
+                                'message' => $message,
                                 'date'    => date('Y-m-d H:i:s')
                             ];
 
@@ -461,6 +481,7 @@ class WebSocketForChatChess extends Command
                         $deskViewDiceSide  = $messages[0];
                         $realUserDiceSide  = $messages[1];
                         $activeCard        = $messages[2] ?? 0;
+                        $shunItem          = $messages[3] ?? '';
                         $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
 
                         //记录操作 （注意：优先级 杠>碰>吃）
@@ -488,7 +509,7 @@ class WebSocketForChatChess extends Command
 
                                     $send = [
                                         'type'    => array_keys($toOperate)[0],
-                                        'message' => current($toOperate)['realActivityDiceSide'] . '|' . $realUserDiceSide . '|' . $activeCard,
+                                        'message' => current($toOperate)['realActivityDiceSide'] . '|' . $realUserDiceSide . '|' . $activeCard . '|' . $shunItem,
                                         'date'    => date('Y-m-d H:i:s')
                                     ];
 
@@ -503,7 +524,7 @@ class WebSocketForChatChess extends Command
 
                                 $send = [
                                     'type'    => $type,
-                                    'message' => $deskViewDiceSide . '|' . $realUserDiceSide . '|' . $activeCard,
+                                    'message' => $deskViewDiceSide . '|' . $realUserDiceSide . '|' . $activeCard . '|' . $shunItem,
                                     'date'    => date('Y-m-d H:i:s')
                                 ];
 
@@ -525,6 +546,8 @@ class WebSocketForChatChess extends Command
                         $this->info('组' . $group_num . '牌' . $activeCard . ' 总数' . count($operateUsers));
 
                         if (count($operateUsers) == 4) {
+                            $this->info("-------------------------------------------------------------------------------");
+                            $this->info("");
                             Redis::del(sprintf(CacheKey::PREFIX, $group_num . '_') . sprintf(CacheKey::USER_CAN_OPERATE_KEY, $activeCard));
                             $canNext = true;
                             foreach ($operateUsers as $deskViewDiceSideItem => $canOperateItem) {
@@ -635,6 +658,7 @@ class WebSocketForChatChess extends Command
                 //ChatGroupLog::createModel($data_save);
                 break;
             default:
+                $this->info("客户端发了：--" . json_encode($data));
                 break;
         }
     }

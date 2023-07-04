@@ -44,7 +44,7 @@
     //初始化webSocket
     function initWebSocket() {
         try {
-            var wsUrl = 'ws://'+'{{ env('SWOOLE_HTTP_HOST', 'chat.zengyanqi.com').':9600' }}'
+            var wsUrl = 'wss://'+'{{ env('SWOOLE_HTTP_HOST', 'www.zengyanqi.com').':9600' }}'
                 +'?device_unique_id='+$('#device_unique_id').val();
 
             if($('#group_num').val().length>0) {
@@ -93,11 +93,11 @@
         var msg = $('#txtMsg').val();
 
 
-        var ws_message = JSON.stringify(data);
+        var ws_message = JSON.stringify(msg);
 
         ws.send(ws_message); //发送消息
 
-        outPutMsg('我说:' + data.toString() + msg);
+        outPutMsg('我说:' + msg.toString() + msg);
     }
 
     function outPutMsg(msg) {
