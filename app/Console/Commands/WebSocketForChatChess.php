@@ -296,7 +296,8 @@ class WebSocketForChatChess extends Command
             $user_data = [
                 'group_num' => $group_num,
                 'name'      => $user['name'],
-                'fd'        => $request->fd
+                'fd'        => $request->fd,
+                'isPrepare' => 0
             ];
             Redis::hSet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id, json_encode($user_data));
 
@@ -385,6 +386,9 @@ class WebSocketForChatChess extends Command
                         foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
                             $redis_user = json_decode($redis_user, true);
 
+                            $redis_user['isPrepare'] = 0;
+                            Redis::hSet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $redis_en_user_id, json_encode($redis_user));
+
                             $send = [
                                 'type'    => $type,
                                 'message' => $message,
@@ -393,6 +397,32 @@ class WebSocketForChatChess extends Command
 
                             $ws_server->push($redis_user['fd'], json_encode($send));
                             $this->info($redis_user['fd'] . '|结束 user_id=' . $redis_en_user_id . '|message=' . $send['message']);
+                        }
+                        break;
+                    case ChatGroupLog::TYPE_PREPARE:
+                        $user = User::getInfo($device_unique_id, $group_num);
+                        $user_id = $user['id'];
+                        $user_data = json_decode(Redis::hGet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id), true);
+                        $user_data['isPrepare'] = 1;
+                        Redis::hSet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id, json_encode($user_data));
+
+                        $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
+                        $prepareNum = 1; //默认1 因为房主无须准备
+                        foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
+                            $redis_user = json_decode($redis_user, true);
+                            if($redis_user['isPrepare'] == 1) {
+                                ++$prepareNum;
+                            }
+                        }
+                        //通知所有用户，已准备的数量
+                        foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
+                            $redis_user = json_decode($redis_user, true);
+                            $send       = [
+                                'type'    => ChatGroupLog::TYPE_PREPARE,
+                                'message' => $prepareNum . '|' . 'prepare success',
+                                'date'    => date('Y-m-d H:i:s')
+                            ];
+                            $ws_server->push($redis_user['fd'], json_encode($send));
                         }
                         break;
                     case ChatGroupLog::TYPE_START:

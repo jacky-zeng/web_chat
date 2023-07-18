@@ -8,17 +8,18 @@ class ChatGroupLog extends \Illuminate\Foundation\Auth\User
 
     const TYPE_CONNECT_FAIL = -1; //客户端连接失败
     const TYPE_CONNECT = 0;       //客户端连接成功
-    const TYPE_END = 1;           //牌局结束（有人胡了/没牌了）
-    const TYPE_START = 2;         //游戏开始
-    const TYPE_USER_GRAB = 3;     //用户抓牌
-    const TYPE_USER_KNOCK = 4;    //用户出牌
-    const TYPE_PASS = 5;          //过
-    const TYPE_CHI = 6;           //吃
-    const TYPE_PENG = 7;          //碰
-    const TYPE_GANG = 8;          //明杠
-    const TYPE_AN_GANG = 9;       //暗杠
-    const TYPE_OPERATE = 10;      //等待用户操作
-    const TYPE_NEXT = 11;         //轮到下一个
+    const TYPE_PREPARE = 1;       //客户端准备
+    const TYPE_END = 2;           //牌局结束（有人胡了/没牌了）
+    const TYPE_START = 3;         //游戏开始
+    const TYPE_USER_GRAB = 4;     //用户抓牌
+    const TYPE_USER_KNOCK = 5;    //用户出牌
+    const TYPE_PASS = 6;          //过
+    const TYPE_CHI = 7;           //吃
+    const TYPE_PENG = 8;          //碰
+    const TYPE_GANG = 9;          //明杠
+    const TYPE_AN_GANG = 10;      //暗杠
+    const TYPE_OPERATE = 11;      //等待用户操作
+    const TYPE_NEXT = 12;         //轮到下一个
 
     //是否是机器人 0-否 1-是
     const IS_MACHINE_YES = 1;

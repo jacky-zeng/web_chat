@@ -53,6 +53,14 @@ class User extends \Illuminate\Foundation\Auth\User
         return $mdl;
     }
 
+    public static function getInfo($name, $group_num)
+    {
+        return self::where([
+            'name' => $name,
+            'group_num' => $group_num
+        ])->first();
+    }
+
     public static function createOrUpdate($name, $group_num)
     {
         $user = self::where('name', $name)
