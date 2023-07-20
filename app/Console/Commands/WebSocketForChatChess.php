@@ -69,8 +69,8 @@ class WebSocketForChatChess extends Command
         $this->ws_server = new \swoole_websocket_server('0.0.0.0', self::PORT, SWOOLE_PROCESS, SWOOLE_SOCK_TCP | SWOOLE_SSL);
 
         $this->ws_server->set([
-            'ssl_cert_file' => '/root/.acme.sh/www.zengyanqi.com/www.zengyanqi.com.cer',
-            'ssl_key_file' => '/root/.acme.sh/www.zengyanqi.com/www.zengyanqi.com.key',
+            'ssl_cert_file'   => '/root/.acme.sh/www.zengyanqi.com/www.zengyanqi.com.cer',
+            'ssl_key_file'    => '/root/.acme.sh/www.zengyanqi.com/www.zengyanqi.com.key',
             // 其他服务器配置选项...
             'worker_num'      => 2, //一般设置为服务器CPU数的1-4倍
             'task_worker_num' => 4, //task进程的数量
@@ -363,12 +363,12 @@ class WebSocketForChatChess extends Command
                 $device_unique_id = $data['data']['device_unique_id'];
                 $message          = $data['data']['message'];
 
-                if($type == ChatGroupLog::TYPE_OPERATE) {
-                    $messagesTT         = explode('|', $message);
-                    $activeCardTT       = $messagesTT[2];
+                if ($type == ChatGroupLog::TYPE_OPERATE) {
+                    $messagesTT   = explode('|', $message);
+                    $activeCardTT = $messagesTT[2];
 
                     $operateUsersTT = Redis::hGetAll(sprintf(CacheKey::PREFIX, $group_num . '_') . sprintf(CacheKey::USER_CAN_OPERATE_KEY, $activeCardTT));
-                    if(count($operateUsersTT) == 0) {
+                    if (count($operateUsersTT) == 0) {
                         $this->info("");
                         $this->info("-------------------------------------------------------------------------------");
                     }
@@ -400,17 +400,17 @@ class WebSocketForChatChess extends Command
                         }
                         break;
                     case ChatGroupLog::TYPE_PREPARE:
-                        $user = User::getInfo($device_unique_id, $group_num);
-                        $user_id = $user['id'];
-                        $user_data = json_decode(Redis::hGet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id), true);
+                        $user                   = User::getInfo($device_unique_id, $group_num);
+                        $user_id                = $user['id'];
+                        $user_data              = json_decode(Redis::hGet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id), true);
                         $user_data['isPrepare'] = 1;
                         Redis::hSet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id, json_encode($user_data));
 
                         $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
-                        $prepareNum = 1; //默认1 因为房主无须准备
+                        $prepareNum        = 1; //默认1 因为房主无须准备
                         foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
                             $redis_user = json_decode($redis_user, true);
-                            if($redis_user['isPrepare'] == 1) {
+                            if ($redis_user['isPrepare'] == 1) {
                                 ++$prepareNum;
                             }
                         }
@@ -522,7 +522,7 @@ class WebSocketForChatChess extends Command
                             $toOperate  = [];
                             $canOperate = true; //当所有可操作用户选择完具体的操作时 为true
                             foreach ($operates as $deskViewDiceSideItem => $type) {
-                                if ($type == 0) { //用户暂未操作
+                                if ($type == 0) {  //用户暂未操作 (必须可操作用户$operates里的用户全进行了操作，才轮到下一步)
                                     $canOperate = false;
                                     break;
                                 } else {
@@ -533,39 +533,48 @@ class WebSocketForChatChess extends Command
                             }
 
                             if ($canOperate) {
-                                ksort($toOperate);
-                                foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
-                                    $redis_user = json_decode($redis_user, true);
+                                $isAllPass = true;
+                                //先判断一下，是否全是过
+                                foreach ($toOperate as $toOperateType => $toOperateValue) {
+                                    if ($toOperateType != ChatGroupLog::TYPE_PASS) {
+                                        $isAllPass = false;
+                                        break;
+                                    }
+                                }
+                                if ($isAllPass) { //全是过，则直接通知房主，轮到下一个
+                                    $user_id          = Redis::get(sprintf(CacheKey::GROUP_HOME_OWNER_USER_ID_KEY, $group_num));
+                                    $redis_en_user_id = json_decode(Redis::hGet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id), true);
 
                                     $send = [
-                                        'type'    => array_keys($toOperate)[0],
-                                        'message' => current($toOperate)['realActivityDiceSide'] . '|' . $realUserDiceSide . '|' . $activeCard . '|' . $shunItem,
+                                        'type'    => ChatGroupLog::TYPE_NEXT,
+                                        'message' => 0 . '|' . '0',
                                         'date'    => date('Y-m-d H:i:s')
                                     ];
 
-                                    $ws_server->push($redis_user['fd'], json_encode($send));
-                                    $this->info($redis_user['fd'] . '|用户（-开始-）操作 user_id=' . $redis_en_user_id . '|message=' . $send['message']);
+                                    $ws_server->push($redis_en_user_id['fd'], json_encode($send));
+                                    $this->info($redis_en_user_id['fd'] . '|（全是过）通知房主轮到下一个 user_id=' . $user_id . '|message=' . $send['message']);
+                                } else {
+                                    ksort($toOperate);
+                                    foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
+                                        $redis_user = json_decode($redis_user, true);
+
+                                        $send = [
+                                            'type'    => array_keys($toOperate)[0],
+                                            'message' => current($toOperate)['realActivityDiceSide'] . '|' . $realUserDiceSide . '|' . $activeCard . '|' . $shunItem,
+                                            'date'    => date('Y-m-d H:i:s')
+                                        ];
+
+                                        $ws_server->push($redis_user['fd'], json_encode($send));
+                                        $this->info($redis_user['fd'] . '|用户（-开始-）操作 user_id=' . $redis_en_user_id . '|message=' . $send['message']);
+                                    }
                                 }
                                 Redis::del(sprintf(CacheKey::PREFIX, $group_num . '_') . sprintf(CacheKey::USER_OPERATE_KEY, $activeCard));
-                            }
-                        } else {
-                            foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
-                                $redis_user = json_decode($redis_user, true);
-
-                                $send = [
-                                    'type'    => $type,
-                                    'message' => $deskViewDiceSide . '|' . $realUserDiceSide . '|' . $activeCard . '|' . $shunItem,
-                                    'date'    => date('Y-m-d H:i:s')
-                                ];
-
-                                $ws_server->push($redis_user['fd'], json_encode($send));
-                                $this->info($redis_user['fd'] . '|用户（-开始-）操作 user_id=' . $redis_en_user_id . '|message=' . $send['message']);
                             }
                         }
                         break;
                     case ChatGroupLog::TYPE_OPERATE:
-                        $messages         = explode('|', $message);
-                        $deskViewDiceSide = $messages[0];
+                        $messages = explode('|', $message);
+                        //$deskViewDiceSide = $messages[0];
                         $realUserDiceSide = $messages[1];
                         $activeCard       = $messages[2];
                         $canOperate       = $messages[3];
@@ -587,21 +596,18 @@ class WebSocketForChatChess extends Command
                                 }
                             }
 
-                            if ($canNext) {
-                                $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
+                            if ($canNext) { //4个用户均无法操作，通知房主，轮到下一个
+                                $user_id          = Redis::get(sprintf(CacheKey::GROUP_HOME_OWNER_USER_ID_KEY, $group_num));
+                                $redis_en_user_id = json_decode(Redis::hGet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id), true);
 
-                                foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
-                                    $redis_user = json_decode($redis_user, true);
+                                $send = [
+                                    'type'    => ChatGroupLog::TYPE_NEXT,
+                                    'message' => 0 . '|' . '0',
+                                    'date'    => date('Y-m-d H:i:s')
+                                ];
 
-                                    $send = [
-                                        'type'    => ChatGroupLog::TYPE_NEXT,
-                                        'message' => $deskViewDiceSide . '|' . '0',
-                                        'date'    => date('Y-m-d H:i:s')
-                                    ];
-
-                                    $ws_server->push($redis_user['fd'], json_encode($send));
-                                    $this->info($redis_user['fd'] . '|轮到下一个 user_id=' . $redis_en_user_id . '|message=' . $send['message']);
-                                }
+                                $ws_server->push($redis_en_user_id['fd'], json_encode($send));
+                                $this->info($redis_en_user_id['fd'] . '|（4个用户均无法操作）通知房主轮到下一个 user_id=' . $user_id . '|message=' . $send['message']);
                             } else {
                                 $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
 
@@ -634,7 +640,7 @@ class WebSocketForChatChess extends Command
                                     }
                                 }
 
-                                if (!empty($notRealUsers)) {
+                                if (!empty($notRealUsers)) { //机器人交给房主处理
                                     $user_id          = Redis::get(sprintf(CacheKey::GROUP_HOME_OWNER_USER_ID_KEY, $group_num));
                                     $redis_en_user_id = json_decode(Redis::hGet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id), true);
                                     foreach ($notRealUsers as $notRealUser) {
@@ -652,25 +658,6 @@ class WebSocketForChatChess extends Command
                                     }
                                 }
                             }
-                        }
-                        break;
-                    case ChatGroupLog::TYPE_NEXT:
-                        $messages          = explode('|', $message);
-                        $deskViewDiceSide  = $messages[0];
-                        $realUserDiceSide  = $messages[1];
-                        $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
-
-                        foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
-                            $redis_user = json_decode($redis_user, true);
-
-                            $send = [
-                                'type'    => $type,
-                                'message' => $deskViewDiceSide . '|' . $realUserDiceSide,
-                                'date'    => date('Y-m-d H:i:s')
-                            ];
-
-                            $ws_server->push($redis_user['fd'], json_encode($send));
-                            $this->info($redis_user['fd'] . '|轮到下一个 user_id=' . $redis_en_user_id . '|message=' . $send['message']);
                         }
                         break;
                     default:
