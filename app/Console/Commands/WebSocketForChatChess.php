@@ -523,12 +523,12 @@ class WebSocketForChatChess extends Command
                         if (count($operates) != 0) {
                             $toOperate  = [];
                             $canOperate = true; //当所有可操作用户选择完具体的操作时 为true
-                            foreach ($operates as $deskViewDiceSideItem => $type) {
-                                if ($type == 0) {  //用户暂未操作 (必须可操作用户$operates里的用户全进行了操作，才轮到下一步)
+                            foreach ($operates as $deskViewDiceSideItem => $typeReal) {
+                                if ($typeReal == 0) {  //用户暂未操作 (必须可操作用户$operates里的用户全进行了操作，才轮到下一步)
                                     $canOperate = false;
                                     break;
                                 } else {
-                                    $toOperate[$type] = [
+                                    $toOperate[$typeReal] = [
                                         'realActivityDiceSide' => $deskViewDiceSideItem
                                     ];
                                 }
@@ -556,7 +556,7 @@ class WebSocketForChatChess extends Command
                                     $ws_server->push($redis_en_user_id['fd'], json_encode($send));
                                     $this->info($redis_en_user_id['fd'] . '|（全是过）通知房主轮到下一个 user_id=' . $user_id . '|message=' . $send['message']);
                                 } else {
-                                    ksort($toOperate);
+                                    krsort($toOperate); //对关联数组按照键名进行降序排序
                                     foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
                                         $redis_user = json_decode($redis_user, true);
 
@@ -567,7 +567,7 @@ class WebSocketForChatChess extends Command
                                         ];
 
                                         $ws_server->push($redis_user['fd'], json_encode($send));
-                                        $this->info($redis_user['fd'] . '|用户（-开始-）操作 user_id=' . $redis_en_user_id . '|message=' . $send['message']);
+                                        $this->info($redis_user['fd'] . '|用户（-开始-）操作 user_id=' . $redis_en_user_id. 'type = ' .$send['type'] . '|message=' . $send['message']);
                                     }
                                 }
                                 Redis::del(sprintf(CacheKey::PREFIX, $group_num . '_') . sprintf(CacheKey::USER_OPERATE_KEY, $activeCard));
