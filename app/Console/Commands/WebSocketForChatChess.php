@@ -212,8 +212,10 @@ class WebSocketForChatChess extends Command
                 $ws_server->disconnect($request->fd, 1000, '牌桌失败');
             }
             if (!empty($group_num)) { //创建牌桌
+                $user              = User::createOrUpdate($device_unique_id, $group_num);
+                $user_id           = Redis::get(sprintf(CacheKey::GROUP_HOME_OWNER_USER_ID_KEY, $group_num));
                 $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
-                if (!empty($redis_en_user_ids)) {
+                if (!empty($redis_en_user_ids) && $user['id'] != $user_id) {
                     $connect_success = false;
                     $this->info("客户端 {$request->fd} 创建牌桌失败，牌桌已存在");
                     $send = [
@@ -224,7 +226,6 @@ class WebSocketForChatChess extends Command
                     $ws_server->push($request->fd, json_encode($send));
                     $ws_server->disconnect($request->fd, 1000, '创建牌桌失败，牌桌已存在');
                 } else {
-                    $user = User::createOrUpdate($device_unique_id, $group_num);
                     Redis::set(sprintf(CacheKey::DEVICE_UNIQUE_ID_KEY, $device_unique_id), json_encode([
                         'user_id' => $user['id'],
                     ]));
@@ -400,12 +401,13 @@ class WebSocketForChatChess extends Command
                         }
                         break;
                     case ChatGroupLog::TYPE_PREPARE:
-                        $user                   = User::getInfo($device_unique_id, $group_num);
-                        $user_id                = $user['id'];
-                        $user_data              = json_decode(Redis::hGet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id), true);
-                        $user_data['isPrepare'] = 1;
-                        Redis::hSet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id, json_encode($user_data));
-
+                        if ($message == 'prepare') {
+                            $user                   = User::getInfo($device_unique_id, $group_num);
+                            $user_id                = $user['id'];
+                            $user_data              = json_decode(Redis::hGet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id), true);
+                            $user_data['isPrepare'] = 1;
+                            Redis::hSet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $user_id, json_encode($user_data));
+                        }
                         $redis_en_user_ids = Redis::hGetAll(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num));
                         $prepareNum        = 1; //默认1 因为房主无须准备
                         foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
