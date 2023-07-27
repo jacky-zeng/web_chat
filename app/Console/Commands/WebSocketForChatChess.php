@@ -320,7 +320,7 @@ class WebSocketForChatChess extends Command
     //删除缓存
     private function deleteRedisCache($group_num)
     {
-        //删除redis所有指定前缀的key
+        //删除redis所有指定前缀的key（如果key特别多，这个方法会引发大问题，但是现在基本没几个key，就直接这样用了）
         $keys = Redis::keys(sprintf(CacheKey::PREFIX, $group_num . '_') . '*');
         $this->info('key的数量' . count($keys));
         foreach ($keys as $key) {
@@ -347,13 +347,7 @@ class WebSocketForChatChess extends Command
     //监听webSocket的任务事件
     private function onTask($ws_server, $task_id, $from_id, $data)
     {
-        switch ($data['type']) {
-            case WebSocket::TYPE_USER_LOGIN:
-                //$ws_server->push($data['fd'], WebSocket::TYPE_USER_LOGIN . WebSocket::SPLIT_WORD . json_encode($data['data']));
-                break;
-            case WebSocket::TYPE_USER_LOGOUT:
-                //$ws_server->push($data['fd'], WebSocket::TYPE_USER_LOGOUT . WebSocket::SPLIT_WORD . json_encode($data['data']));
-                break;
+        switch ($data['type']) { // 这个type来自方法onMessage
             case WebSocket::TYPE_MSG:
                 if (empty($data['data']['group_num']) || empty($data['data']['type'])) {
                     $this->info("客户端发了：空的" . json_encode($data));
@@ -437,29 +431,42 @@ class WebSocketForChatChess extends Command
                         $this->info(substr($initCards, 0, 200));
                         $message = $initCards;
 
-                        $realUserDiceSide = 4;
-                        $isOnlineSide     = []; //在线的用户方位
+                        $hasSetRealUserDiceSide = true; //是否全部已设置好方位
+                        $hasOnlineSides         = [];   //在线的用户方位
+                        $realUserDiceSides      = [1, 2, 3, 4];
+                        $isOnlineSide           = []; //在线的用户方位
                         foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
-                            $isOnlineSide[] = $realUserDiceSide;
-                            --$realUserDiceSide;
+                            $randomKey   = array_rand($realUserDiceSides);   // 从数组中随机取出一个键
+                            $randomValue = $realUserDiceSides[$randomKey];   // 根据键获取对应的值
+                            unset($realUserDiceSides[$randomKey]);           // 从数组中删除指定键的元素
+                            $isOnlineSide[] = $randomValue;
+
+                            $redis_user = json_decode($redis_user, true);
+                            if (!isset($redis_user['realUserDiceSide']) || $redis_user['realUserDiceSide'] == 0) {
+                                $hasSetRealUserDiceSide = false;
+                            } else {
+                                $hasOnlineSides[] = $redis_user['realUserDiceSide'];
+                            }
                         }
-                        $realUserDiceSide = 4;
+                        $isOnlineSideCopy = $isOnlineSide; //拷贝在线数组，防止array_pop导致数据删除
+
                         foreach ($redis_en_user_ids as $redis_en_user_id => $redis_user) {
                             $redis_user = json_decode($redis_user, true);
 
-                            //将真实方位存入redis
-                            $redis_user['realUserDiceSide'] = $realUserDiceSide;
-                            Redis::hSet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $redis_en_user_id, json_encode($redis_user));
+                            if (!$hasSetRealUserDiceSide) {
+                                //将真实方位存入redis
+                                $redis_user['realUserDiceSide'] = array_pop($isOnlineSide);
+                                Redis::hSet(sprintf(CacheKey::GROUP_USER_IDS_KEY, $group_num), $redis_en_user_id, json_encode($redis_user));
+                            }
 
                             $send = [
                                 'type'    => ChatGroupLog::TYPE_START,
-                                'message' => $realUserDiceSide . '|' . $message . '|' . implode('#', $isOnlineSide),
+                                'message' => $redis_user['realUserDiceSide'] . '|' . $message . '|' . implode('#', $hasSetRealUserDiceSide ? $hasOnlineSides : $isOnlineSideCopy),
                                 'date'    => date('Y-m-d H:i:s')
                             ];
 
                             $ws_server->push($redis_user['fd'], json_encode($send));
-                            $this->info($redis_user['fd'] . '|user_id=' . $redis_en_user_id . '|realUserDiceSide=' . $realUserDiceSide);
-                            --$realUserDiceSide;
+                            $this->info($redis_user['fd'] . '|user_id=' . $redis_en_user_id . '|realUserDiceSide=' . $redis_user['realUserDiceSide']);
                         }
                         break;
                     case ChatGroupLog::TYPE_USER_GRAB:
@@ -567,7 +574,7 @@ class WebSocketForChatChess extends Command
                                         ];
 
                                         $ws_server->push($redis_user['fd'], json_encode($send));
-                                        $this->info($redis_user['fd'] . '|用户（-开始-）操作 user_id=' . $redis_en_user_id. 'type = ' .$send['type'] . '|message=' . $send['message']);
+                                        $this->info($redis_user['fd'] . '|用户（-开始-）操作 user_id=' . $redis_en_user_id . 'type = ' . $send['type'] . '|message=' . $send['message']);
                                     }
                                 }
                                 Redis::del(sprintf(CacheKey::PREFIX, $group_num . '_') . sprintf(CacheKey::USER_OPERATE_KEY, $activeCard));
