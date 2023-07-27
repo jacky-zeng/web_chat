@@ -226,6 +226,8 @@ class WebSocketForChatChess extends Command
                     $ws_server->push($request->fd, json_encode($send));
                     $ws_server->disconnect($request->fd, 1000, '创建牌桌失败，牌桌已存在');
                 } else {
+                    Redis::set(sprintf(CacheKey::PREFIX, $group_num . '_') . CacheKey::GROUP_IS_START_KEY, 0);
+
                     Redis::set(sprintf(CacheKey::DEVICE_UNIQUE_ID_KEY, $device_unique_id), json_encode([
                         'user_id' => $user['id'],
                     ]));
@@ -260,7 +262,8 @@ class WebSocketForChatChess extends Command
                     $ws_server->push($request->fd, json_encode($send));
                     $ws_server->disconnect($request->fd, 1000, '加入牌桌失败，牌桌已满');
                 } else {
-                    $groupIsStart = Redis::get(sprintf(CacheKey::PREFIX, $group_num . '_') . CacheKey::GROUP_IS_START_KEY);
+                    $groupIsStart = Redis::get(sprintf(CacheKey::PREFIX, $join_group_num . '_') . CacheKey::GROUP_IS_START_KEY);
+                    $this->info("groupIsStart = " . $groupIsStart);
                     if ($groupIsStart && $groupIsStart == 1) {
                         $connect_success = false;
                         $this->info("客户端 {$request->fd} 加入牌桌失败，牌桌已开始游戏");
@@ -364,8 +367,9 @@ class WebSocketForChatChess extends Command
 
                     $operateUsersTT = Redis::hGetAll(sprintf(CacheKey::PREFIX, $group_num . '_') . sprintf(CacheKey::USER_CAN_OPERATE_KEY, $activeCardTT));
                     if (count($operateUsersTT) == 0) {
+                        $groupIsStart = Redis::get(sprintf(CacheKey::PREFIX, $group_num . '_') . CacheKey::GROUP_IS_START_KEY);
                         $this->info("");
-                        $this->info("-------------------------------------------------------------------------------");
+                        $this->info("-------groupIsStart = ". $groupIsStart . "------------------------------------------------------------------------");
                     }
                 }
                 $this->info("客户端发了：" . $type . '|' . $group_num . '|' . $device_unique_id . '|' . $message);
@@ -427,6 +431,10 @@ class WebSocketForChatChess extends Command
 
                         //开始游戏
                         Redis::set(sprintf(CacheKey::PREFIX, $group_num . '_') . CacheKey::GROUP_IS_START_KEY, 1);
+
+                        $groupIsStart = Redis::get(sprintf(CacheKey::PREFIX, $group_num . '_') . CacheKey::GROUP_IS_START_KEY);
+                        $this->info("开始游戏 groupIsStart = " . $groupIsStart);
+
                         $initCards = (new ChessRepository())->initCards();
                         $this->info(substr($initCards, 0, 200));
                         $message = $initCards;

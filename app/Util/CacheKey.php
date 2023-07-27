@@ -20,7 +20,7 @@ class CacheKey
 
     const PREFIX = 'A_MJ_PREFIX_%s';                     //key的前缀
 
-    const GROUP_IS_START_KEY = 'GROUP_IS_START_%s';      //牌桌是否已经开始游戏
+    const GROUP_IS_START_KEY = 'GROUP_IS_START';         //牌桌是否已经开始游戏
 
     const USER_CAN_OPERATE_KEY = 'USER_CAN_OPERATE_%s';  //是否可以操作（碰，吃，胡，杠 等）
 
