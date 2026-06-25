@@ -18,20 +18,62 @@ Laravel5.6(后端php框架) + Swoole(韩天峰的写的) + css,html,jquery(未�
 
 >  ![点击查看项目截图](https://github.com/jacky-zeng/web_chat/raw/master/public/introduction/config.png)
 
+>  env参考
+
+```
+APP_NAME=web_chat
+APP_ENV=local
+APP_KEY=base64:+mXWIML/TYRlwsYhE6MDi3dT1RR6dC4DMp9WWqISbcI=
+APP_DEBUG=true
+APP_URL=http://localhost
+
+LOG_CHANNEL=stack
+
+DB_CONNECTION=mysql
+DB_HOST=mysql8
+DB_PORT=3306
+DB_DATABASE=web_chat
+DB_USERNAME=root
+DB_PASSWORD=xxxxxxxxx
+
+BROADCAST_DRIVER=log
+CACHE_DRIVER=redis
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+QUEUE_DRIVER=sync
+
+REDIS_HOST=redis-server
+REDIS_PASSWORD=xxxxxxxxx
+REDIS_PORT=6379
+REDIS_DB=12
+
+SWOOLE_HTTP_HOST=0.0.0.0
+SWOOLE_HTTP_HOST2=chat.zengyanqi.com
+```
+
 >  nginx配置：
 ```
 server {
-  listen 80;
-  server_name chat.zengyanqi.com;
+    listen 80;
+    server_name chat.zengyanqi.com;
+    root /var/www/www/web_chat/public;  # 静态文件根目录
 
-  location / {
-    root /var/www/www/web_chat/public;
-    if (!-e $request_filename) {
-      #非静态文件，使用swoole服务
-      proxy_pass http://127.0.0.1:1215;
+    location / {
+        # 尝试访问静态文件，如果不存在则转发给 @swoole 处理
+        try_files $uri $uri/ @swoole;
     }
-  }
+
+    location @swoole {
+        proxy_pass http://127.0.0.1:1215;
+
+        # 递真实的域名，而不是 127.0.0.1
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 }
+
 ```
 
 >  启动HTTP服务(也就是127.0.0.1:1215)：php artisan swoole:http start
@@ -56,6 +98,7 @@ server {
 
 > 聊天页面
 ![点击查看项目截图](https://github.com/jacky-zeng/web_chat/raw/master/public/introduction/chat_info.jpg)
+
 
 # 目标功能
 - [x] 登录注册&游客登录&退出登录 -- 完成
