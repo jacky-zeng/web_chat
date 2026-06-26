@@ -15,7 +15,12 @@
 
 <script type="text/javascript">
 
-    var wsUrl = 'ws://'+'{{ env('SWOOLE_HTTP_HOST2', 'chat.zengyanqi.com').':9600' }}';
+    var protocol = window.location.protocol;
+    if (protocol === "https:"){
+        var wsUrl = 'wss://'+'{{ env('SWOOLE_HTTP_HOST2', 'chat.zengyanqi.com').':9600' }}';
+    } else {
+        var wsUrl = 'ws://'+'{{ env('SWOOLE_HTTP_HOST2', 'chat.zengyanqi.com').':9600' }}';
+    }
 
     var ws;
 

@@ -2,7 +2,13 @@ var wsUrl;
 var ws;
 
 $(function () {
-    wsUrl = 'ws://'+$('[name="swoole_http_host"]').val()+'?user_id=' + $('[name="user_id"]').val() + '&token=' + $('[name="token"]').val();
+    var protocol = window.location.protocol;
+    if (protocol === "https:"){
+        wsUrl = 'wss://'+$('[name="swoole_http_host"]').val()+'?user_id=' + $('[name="user_id"]').val() + '&token=' + $('[name="token"]').val();
+    } else {
+        wsUrl = 'ws://'+$('[name="swoole_http_host"]').val()+'?user_id=' + $('[name="user_id"]').val() + '&token=' + $('[name="token"]').val();
+    }
+
     initWebSocket();
 });
 

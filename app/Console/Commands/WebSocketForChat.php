@@ -69,11 +69,24 @@ class WebSocketForChat extends Command
     private function start()
     {
         $this->info("========begin to start web socket==========");
-        $this->ws_server = new \swoole_websocket_server('0.0.0.0', self::PORT);
+//        $this->ws_server = new \swoole_websocket_server('0.0.0.0', self::PORT);
+//        $this->ws_server->set([
+//            'worker_num'      => 2, //一般设置为服务器CPU数的1-4倍
+//            'task_worker_num' => 4, //task进程的数量
+//        ]);
+
+
+        //使用https时，也需要改成wss
+        $this->ws_server = new \swoole_websocket_server('0.0.0.0', self::PORT, SWOOLE_PROCESS, SWOOLE_SOCK_TCP | SWOOLE_SSL);
+
         $this->ws_server->set([
+            'ssl_cert_file' => '/app/web_chat/ssl/chat.zengyanqi.com.cer',  //证书路径 cer
+            'ssl_key_file' => '/app/web_chat/ssl/chat.zengyanqi.com.key',   //证书路径 key
+            // 其他服务器配置选项...
             'worker_num'      => 2, //一般设置为服务器CPU数的1-4倍
             'task_worker_num' => 4, //task进程的数量
         ]);
+
 
         $this->ws_server->on('start', function ($ws_server) {
             $this->onStart($ws_server);
